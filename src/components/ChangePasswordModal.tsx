@@ -16,7 +16,7 @@ export default function ChangePasswordModal({ userId, onDone, onLater, required 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     if (pw.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
     if (pw !== confirm) { toast('Passwords do not match', 'error'); return; }
@@ -85,3 +85,4 @@ export default function ChangePasswordModal({ userId, onDone, onLater, required 
     </div>
   );
 }
+

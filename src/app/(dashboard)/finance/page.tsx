@@ -141,8 +141,8 @@ export default function FinancePage() {
                   <p className={`font-bold text-base ${tab === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                     {tab === 'income' ? '+' : '-'}{formatCurrency(Number(item.amount))}
                   </p>
-                  {'bill_url' in item && item.bill_url && (
-                    <a href={item.bill_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 mt-1 block">
+                  {'bill_url' in item && (item as { bill_url: string }).bill_url && (
+                    <a href={(item as { bill_url: string }).bill_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 mt-1 block">
                       View Bill
                     </a>
                   )}

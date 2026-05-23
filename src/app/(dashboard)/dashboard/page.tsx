@@ -133,7 +133,7 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="month" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(v: number) => formatCurrency(v)} />
+              <Tooltip formatter={(v) => formatCurrency(Number(v) || 0)} />
               <Area type="monotone" dataKey="income" stroke="#1e3a5f" fill="url(#incGrad)" strokeWidth={2} name="Income" />
               <Area type="monotone" dataKey="expense" stroke="#e53e3e" fill="url(#expGrad)" strokeWidth={2} name="Expense" />
             </AreaChart>

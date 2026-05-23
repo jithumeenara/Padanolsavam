@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/ToastContext';
+import SwRegister from '@/components/SwRegister';
 
 export const metadata: Metadata = {
   title: 'DYFI Padanolsavam | Meenara Unit',
@@ -29,7 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="min-h-full">
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <SwRegister />
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

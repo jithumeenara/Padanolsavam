@@ -11,27 +11,41 @@ async function apiFetch<T = unknown>(
   method: 'GET' | 'POST' = 'GET',
   body?: Record<string, unknown>
 ): Promise<T> {
-  let url = `${BASE_URL}`;
-  const options: RequestInit = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    redirect: 'follow',
-  };
+  if (!BASE_URL) throw new Error('Apps Script URL not configured. Set NEXT_PUBLIC_APPS_SCRIPT_URL in .env.local');
+
+  let url = BASE_URL;
+  const options: RequestInit = { method, redirect: 'follow' };
 
   if (method === 'GET') {
     const params = new URLSearchParams({ action });
     if (body) {
       Object.entries(body).forEach(([k, v]) => {
-        if (v !== undefined && v !== null) params.set(k, String(v));
+        if (v !== undefined && v !== null && v !== '') params.set(k, String(v));
       });
     }
     url = `${BASE_URL}?${params.toString()}`;
   } else {
+    // Use text/plain to avoid CORS preflight — Apps Script reads e.postData.contents
+    options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
     options.body = JSON.stringify({ action, ...body });
   }
 
-  const res = await fetch(url, options);
-  const json: ApiResponse<T> = await res.json();
+  let res: Response;
+  try {
+    res = await fetch(url, options);
+  } catch {
+    throw new Error('Network error — check your internet connection');
+  }
+
+  if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+  let json: ApiResponse<T>;
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error('Invalid response from server');
+  }
+
   if (!json.success) throw new Error(json.message || 'API Error');
   return json.data as T;
 }
