@@ -14,12 +14,18 @@ export default function LoginPage() {
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [pendingUser, setPendingUser] = useState<AuthUser | null>(null);
   const [showPwChange, setShowPwChange] = useState(false);
 
   async function handleLogin(e: React.SyntheticEvent) {
     e.preventDefault();
-    if (!mobile || !password) { toast('Enter mobile and password', 'error'); return; }
+    setError('');
+    if (!mobile || !password) {
+      setError('Enter mobile number and password');
+      toast('Enter mobile and password', 'error');
+      return;
+    }
     setLoading(true);
     try {
       const user = await login(mobile.trim(), password.trim());
@@ -38,7 +44,9 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Login failed', 'error');
+      const msg = err instanceof Error ? err.message : 'Login failed';
+      setError(msg);
+      toast(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -83,6 +91,12 @@ export default function LoginPage() {
               required
             />
           </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-800 text-sm px-4 py-3 rounded-xl">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
