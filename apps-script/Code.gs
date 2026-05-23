@@ -7,11 +7,59 @@
 var SHEET_ID = '1mzdn6Pi3czxgLOONuZ_nEglKmOnyJroH3JXi-FD9oZg';
 var FOLDER_ID = '1IdnOAUg21J6NGXvWEazCDx98fC8oeEkh';
 
-// ---- Response Helpers ----
+// ---- Sheet Setup (run once from Apps Script editor to initialise) ----
+// Open Apps Script editor > Run > setupSheets  to auto-create all sheets.
+
+function setupSheets() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+
+  var SHEETS = {
+    users:    ['id','name','mobile','password','role','status','first_login','created_at'],
+    students: ['id','student_name','class','parent_phone','address','house_name','remarks','photo_url','added_by','year','created_at'],
+    income:   ['id','title','amount','category','payment_method','remarks','year','created_by','created_at'],
+    expenses: ['id','title','amount','category','payment_method','bill_url','remarks','year','created_by','created_at'],
+    settings: ['default_year','app_name','updated_at'],
+    years:    ['id','year_name','is_default']
+  };
+
+  Object.keys(SHEETS).forEach(function(name) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) {
+      sheet = ss.insertSheet(name);
+      sheet.appendRow(SHEETS[name]);
+      sheet.getRange(1, 1, 1, SHEETS[name].length)
+        .setFontWeight('bold')
+        .setBackground('#f3f4f6');
+    }
+  });
+
+  // Seed admin user if users sheet is empty
+  var usersSheet = ss.getSheetByName('users');
+  if (usersSheet.getLastRow() <= 1) {
+    usersSheet.appendRow([
+      Utilities.getUuid(), 'Admin', '8590551176', 'admin123',
+      'admin', 'active', false, new Date().toISOString()
+    ]);
+  }
+
+  // Seed default settings row if empty
+  var settingsSheet = ss.getSheetByName('settings');
+  if (settingsSheet.getLastRow() <= 1) {
+    settingsSheet.appendRow(['', 'Padanolsavam', new Date().toISOString()]);
+  }
+
+  Logger.log('Setup complete. All sheets created/verified.');
+}
+
+// ---- CORS & Response Helpers ----
+
+function setCorsHeaders(output) {
+  return output
+    .setMimeType(ContentService.MimeType.JSON);
+}
 
 function respond(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
+  return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -23,7 +71,7 @@ function err(message) {
   return respond({ success: false, data: null, message: message });
 }
 
-// ---- Sheet Helpers ----
+// ---- Sheet Helper ----
 
 function getSheet(name) {
   return SpreadsheetApp.openById(SHEET_ID).getSheetByName(name);
@@ -80,8 +128,6 @@ function deleteRow(sheetName, idValue) {
 }
 
 // ---- Entry Points ----
-// NOTE: Google Apps Script handles CORS automatically when deployed as
-// "Anyone" access. The frontend uses text/plain to avoid preflight.
 
 function doGet(e) {
   try {
@@ -90,12 +136,12 @@ function doGet(e) {
     switch (action) {
       case 'getStudents': return handleGetStudents(params);
       case 'getFinance':  return handleGetFinance(params);
-      case 'getUsers':    return handleGetUsers();
-      case 'getSettings': return handleGetSettings();
-      default: return err('Unknown action: ' + action);
+      case 'getUsers':    return handleGetUsers(params);
+      case 'getSettings': return handleGetSettings(params);
+      default: return err('Unknown GET action: ' + action);
     }
   } catch(ex) {
-    return err('Server error: ' + ex.toString());
+    return err(ex.toString());
   }
 }
 
@@ -117,10 +163,10 @@ function doPost(e) {
       case 'uploadFile':      return handleUploadFile(body);
       case 'updateSettings':  return handleUpdateSettings(body);
       case 'addYear':         return handleAddYear(body);
-      default: return err('Unknown action: ' + action);
+      default: return err('Unknown POST action: ' + action);
     }
   } catch(ex) {
-    return err('Server error: ' + ex.toString());
+    return err(ex.toString());
   }
 }
 
@@ -132,50 +178,53 @@ function handleLogin(body) {
   if (!mobile || !password) return err('Mobile and password required');
 
   var users = getSheetData('users');
-  var user = null;
-  for (var i = 0; i < users.length; i++) {
-    if (String(users[i].mobile).trim() === mobile) { user = users[i]; break; }
-  }
-  if (!user) return err('User not found');
-  if (String(user.status).toLowerCase() !== 'active') return err('Account is inactive');
-  if (String(user.password).trim() !== password) return err('Invalid password');
-
-  var firstLogin = String(user.first_login).toUpperCase() === 'TRUE' || user.first_login === true;
+  var user = users.find(function(u) {
+    return String(u.mobile) === mobile && u.status === 'active';
+  });
+  if (!user) return err('User not found or inactive');
+  if (String(user.password) !== password) return err('Invalid password');
 
   return ok({
-    id: String(user.id),
-    name: String(user.name),
-    mobile: String(user.mobile),
-    role: String(user.role),
-    first_login: firstLogin
+    id: user.id,
+    name: user.name,
+    mobile: user.mobile,
+    role: user.role,
+    first_login: user.first_login === true || user.first_login === 'TRUE' || user.first_login === true
   }, 'Login successful');
 }
 
 function handleChangePassword(body) {
-  if (!body.id || !body.newPassword) return err('ID and new password required');
-  if (String(body.newPassword).length < 6) return err('Password must be at least 6 characters');
-  var updated = updateRow('users', body.id, { password: body.newPassword, first_login: false });
+  var id = body.id;
+  var newPassword = body.newPassword;
+  if (!id || !newPassword) return err('ID and new password required');
+  if (newPassword.length < 6) return err('Password must be at least 6 characters');
+
+  var updated = updateRow('users', id, { password: newPassword, first_login: false });
   if (!updated) return err('User not found');
   return ok(null, 'Password changed successfully');
 }
 
 // ---- Users ----
 
-function handleGetUsers() {
+function handleGetUsers(params) {
   var users = getSheetData('users').map(function(u) {
-    return { id: u.id, name: u.name, mobile: u.mobile, role: u.role, status: u.status, first_login: u.first_login, created_at: u.created_at };
+    var copy = Object.assign({}, u);
+    delete copy.password;
+    return copy;
   });
   return ok(users);
 }
 
 function handleAddUser(body) {
-  var name = String(body.name || '').trim();
-  var mobile = String(body.mobile || '').trim();
+  var name = (body.name || '').trim();
+  var mobile = (body.mobile || '').trim();
   var role = body.role || 'user';
   if (!name || !mobile) return err('Name and mobile required');
 
-  var existing = getSheetData('users').filter(function(u) { return String(u.mobile).trim() === mobile; });
-  if (existing.length > 0) return err('User with this mobile already exists');
+  var existing = getSheetData('users').find(function(u) {
+    return String(u.mobile) === mobile;
+  });
+  if (existing) return err('User with this mobile already exists');
 
   var newUser = {
     id: Utilities.getUuid(),
@@ -188,7 +237,7 @@ function handleAddUser(body) {
     created_at: new Date().toISOString()
   };
   appendRow('users', newUser);
-  return ok({ id: newUser.id }, 'User added');
+  return ok({ id: newUser.id }, 'User added successfully');
 }
 
 function handleUpdateUser(body) {
@@ -203,22 +252,21 @@ function handleUpdateUser(body) {
 function handleToggleUser(body) {
   if (!body.id) return err('ID required');
   var users = getSheetData('users');
-  var user = null;
-  for (var i = 0; i < users.length; i++) {
-    if (String(users[i].id) === String(body.id)) { user = users[i]; break; }
-  }
+  var user = users.find(function(u) { return String(u.id) === String(body.id); });
   if (!user) return err('User not found');
-  var newStatus = String(user.status).toLowerCase() === 'active' ? 'inactive' : 'active';
+  var newStatus = user.status === 'active' ? 'inactive' : 'active';
   updateRow('users', body.id, { status: newStatus });
-  return ok({ status: newStatus }, 'Status updated');
+  return ok({ status: newStatus }, 'User status updated');
 }
 
 // ---- Students ----
 
 function handleGetStudents(params) {
+  var year = params.year;
+  var addedBy = params.added_by;
   var students = getSheetData('students');
-  if (params.year) students = students.filter(function(s) { return String(s.year) === String(params.year); });
-  if (params.added_by) students = students.filter(function(s) { return String(s.added_by) === String(params.added_by); });
+  if (year) students = students.filter(function(s) { return String(s.year) === String(year); });
+  if (addedBy) students = students.filter(function(s) { return String(s.added_by) === String(addedBy); });
   return ok(students);
 }
 
@@ -258,10 +306,11 @@ function handleDeleteStudent(body) {
 // ---- Finance ----
 
 function handleGetFinance(params) {
-  var type = params.type;
-  if (!type) return err('type required (income or expenses)');
+  var type = params.type; // 'income' or 'expenses'
+  var year = params.year;
+  if (!type) return err('type required');
   var rows = getSheetData(type);
-  if (params.year) rows = rows.filter(function(r) { return String(r.year) === String(params.year); });
+  if (year) rows = rows.filter(function(r) { return String(r.year) === String(year); });
   return ok(rows);
 }
 
@@ -301,24 +350,23 @@ function handleAddExpense(body) {
 // ---- File Upload ----
 
 function handleUploadFile(body) {
-  if (!body.data) return err('No file data');
+  var base64Data = body.data;
   var fileName = body.fileName || ('upload_' + Date.now());
   var mimeType = body.mimeType || 'image/jpeg';
-  try {
-    var folder = DriveApp.getFolderById(FOLDER_ID);
-    var blob = Utilities.newBlob(Utilities.base64Decode(body.data), mimeType, fileName);
-    var file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    var fileId = file.getId();
-    return ok({ url: 'https://drive.google.com/uc?id=' + fileId, fileId: fileId }, 'Uploaded');
-  } catch(ex) {
-    return err('Upload failed: ' + ex.toString());
-  }
+  if (!base64Data) return err('No file data provided');
+
+  var folder = DriveApp.getFolderById(FOLDER_ID);
+  var blob = Utilities.newBlob(Utilities.base64Decode(base64Data), mimeType, fileName);
+  var file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  var fileId = file.getId();
+  var url = 'https://drive.google.com/uc?id=' + fileId;
+  return ok({ url: url, fileId: fileId }, 'File uploaded');
 }
 
 // ---- Settings ----
 
-function handleGetSettings() {
+function handleGetSettings(params) {
   var settingsSheet = getSheet('settings');
   var settingsData = settingsSheet.getDataRange().getValues();
   var settings = {};
@@ -334,9 +382,10 @@ function handleUpdateSettings(body) {
   var sheet = getSheet('settings');
   var data = sheet.getDataRange().getValues();
   var headers = data[0];
-  var updates = { updated_at: new Date().toISOString() };
+  var updates = {};
   if (body.default_year !== undefined) updates.default_year = body.default_year;
   if (body.app_name !== undefined) updates.app_name = body.app_name;
+  updates.updated_at = new Date().toISOString();
 
   if (data.length < 2) {
     var row = headers.map(function(h) { return updates[h] !== undefined ? updates[h] : ''; });
@@ -351,11 +400,17 @@ function handleUpdateSettings(body) {
 }
 
 function handleAddYear(body) {
-  var yearName = String(body.year_name || '').trim();
+  var yearName = (body.year_name || '').trim();
   if (!yearName) return err('Year name required');
-  var existing = getSheetData('years').filter(function(y) { return y.year_name === yearName; });
-  if (existing.length > 0) return err('Year already exists');
-  var row = { id: Utilities.getUuid(), year_name: yearName, is_default: false };
+
+  var existing = getSheetData('years').find(function(y) { return y.year_name === yearName; });
+  if (existing) return err('Year already exists');
+
+  var row = {
+    id: Utilities.getUuid(),
+    year_name: yearName,
+    is_default: body.is_default === true ? true : false
+  };
   appendRow('years', row);
   return ok({ id: row.id }, 'Year added');
 }

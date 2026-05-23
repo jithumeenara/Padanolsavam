@@ -22,7 +22,6 @@ export default function ReportsPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Filters
   const [classFilter, setClassFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expenses'>('all');
 
@@ -71,9 +70,7 @@ export default function ReportsPage() {
     return isNaN(n) ? a.localeCompare(b) : n;
   });
 
-  function handlePrint() {
-    window.print();
-  }
+  function handlePrint() { window.print(); }
 
   function handleExportFinance() {
     const data = visibleFinance.map(r => ({
@@ -107,12 +104,10 @@ export default function ReportsPage() {
 
   return (
     <div className="page-enter">
-      {/* Controls — hidden on print */}
+      {/* Controls */}
       <div className="no-print">
-        {/* Header bar */}
         <div className="bg-white px-4 py-3 shadow-sm flex items-center justify-between gap-3">
           <h2 className="font-bold text-gray-800 text-base">Reports</h2>
-          {/* Year selector */}
           <select
             value={selectedYear}
             onChange={e => setSelectedYear(e.target.value)}
@@ -129,33 +124,32 @@ export default function ReportsPage() {
         <div className="flex bg-white px-4 pt-2 pb-0 border-b border-gray-100">
           <button
             onClick={() => setTab('financial')}
-            className={`flex-1 pb-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === 'financial' ? 'border-blue-900 text-blue-900' : 'border-transparent text-gray-400'}`}
+            className={`flex-1 pb-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === 'financial' ? 'border-red-800 text-red-800' : 'border-transparent text-gray-400'}`}
           >
             Financial Report
           </button>
           <button
             onClick={() => setTab('students')}
-            className={`flex-1 pb-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === 'students' ? 'border-blue-900 text-blue-900' : 'border-transparent text-gray-400'}`}
+            className={`flex-1 pb-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === 'students' ? 'border-red-800 text-red-800' : 'border-transparent text-gray-400'}`}
           >
             Student Report
           </button>
         </div>
       </div>
 
-      {/* ======== PRINTABLE AREA ======== */}
+      {/* Printable area */}
       <div ref={printRef} className="print-area">
 
-        {/* ---- FINANCIAL REPORT ---- */}
+        {/* Financial Report */}
         {tab === 'financial' && (
           <div>
-            {/* Filters — no-print */}
             <div className="no-print px-4 pt-3 pb-2 space-y-2 bg-white">
               <div className="flex gap-2 flex-wrap">
                 {(['all', 'income', 'expenses'] as const).map(t => (
                   <button
                     key={t}
                     onClick={() => setTypeFilter(t)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold ${typeFilter === t ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold ${typeFilter === t ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-600'}`}
                   >
                     {t === 'all' ? 'All' : t === 'income' ? 'Income' : 'Expense'}
                   </button>
@@ -164,7 +158,7 @@ export default function ReportsPage() {
               <div className="flex gap-2 items-center justify-between">
                 <p className="text-xs text-gray-500">{visibleFinance.length} entries</p>
                 <div className="flex gap-2">
-                  <button onClick={handleExportFinance} className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-lg">Export CSV</button>
+                  <button onClick={handleExportFinance} className="bg-red-50 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-lg">Export CSV</button>
                   <button onClick={handlePrint} className="bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-lg">Print</button>
                 </div>
               </div>
@@ -173,11 +167,11 @@ export default function ReportsPage() {
             {/* Print header */}
             <div className="print-only px-6 py-4 border-b border-gray-200">
               <h1 className="text-xl font-bold text-gray-900">DYFI Padanolsavam | Meenara Unit</h1>
-              <p className="text-sm text-gray-600">Financial Report — Year: {selectedYear}</p>
+              <p className="text-sm text-gray-600">Financial Report &mdash; Year: {selectedYear}</p>
               <p className="text-xs text-gray-400">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             </div>
 
-            {/* Summary cards */}
+            {/* Summary */}
             <div className="px-4 pt-4 pb-2 grid grid-cols-3 gap-3">
               <div className="bg-green-50 rounded-xl p-3 text-center">
                 <p className="text-xs text-gray-500 mb-1">Total Income</p>
@@ -187,9 +181,9 @@ export default function ReportsPage() {
                 <p className="text-xs text-gray-500 mb-1">Total Expense</p>
                 <p className="font-bold text-red-700 text-sm">{formatCurrency(totalExpense)}</p>
               </div>
-              <div className={`${balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'} rounded-xl p-3 text-center`}>
+              <div className={`${balance >= 0 ? 'bg-emerald-50' : 'bg-orange-50'} rounded-xl p-3 text-center`}>
                 <p className="text-xs text-gray-500 mb-1">Balance</p>
-                <p className={`font-bold text-sm ${balance >= 0 ? 'text-blue-800' : 'text-orange-700'}`}>{formatCurrency(balance)}</p>
+                <p className={`font-bold text-sm ${balance >= 0 ? 'text-emerald-700' : 'text-orange-700'}`}>{formatCurrency(balance)}</p>
               </div>
             </div>
 
@@ -199,14 +193,18 @@ export default function ReportsPage() {
                 <div className="space-y-2 pt-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton h-10 rounded-xl" />)}</div>
               ) : visibleFinance.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
-                  <p className="text-4xl mb-2">📊</p>
+                  <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg viewBox="0 0 24 24" className="w-8 h-8 fill-red-200">
+                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                    </svg>
+                  </div>
                   <p className="font-medium text-gray-600">No data for this year</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-gray-100 mt-2">
                   <table className="w-full text-xs min-w-[480px]">
                     <thead>
-                      <tr className="bg-gray-50 border-b border-gray-100">
+                      <tr className="bg-red-50 border-b border-red-100">
                         <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Type</th>
                         <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Title</th>
                         <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Category</th>
@@ -234,7 +232,7 @@ export default function ReportsPage() {
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr className="bg-gray-100 border-t-2 border-gray-200">
+                      <tr className="bg-red-50 border-t-2 border-red-100">
                         <td colSpan={4} className="px-3 py-2.5 font-bold text-gray-700 text-xs">Balance</td>
                         <td className={`px-3 py-2.5 text-right font-bold text-sm ${balance >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                           {formatCurrency(balance)}
@@ -249,15 +247,14 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {/* ---- STUDENT REPORT ---- */}
+        {/* Student Report */}
         {tab === 'students' && (
           <div>
-            {/* Filters — no-print */}
             <div className="no-print px-4 pt-3 pb-2 space-y-2 bg-white">
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setClassFilter('')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold ${!classFilter ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold ${!classFilter ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-600'}`}
                 >
                   All Classes
                 </button>
@@ -265,7 +262,7 @@ export default function ReportsPage() {
                   <button
                     key={c}
                     onClick={() => setClassFilter(c === classFilter ? '' : c)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold ${classFilter === c ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold ${classFilter === c ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-600'}`}
                   >
                     Class {c}
                   </button>
@@ -274,7 +271,7 @@ export default function ReportsPage() {
               <div className="flex gap-2 items-center justify-between">
                 <p className="text-xs text-gray-500">{filteredStudents.length} students</p>
                 <div className="flex gap-2">
-                  <button onClick={handleExportStudents} className="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-lg">Export CSV</button>
+                  <button onClick={handleExportStudents} className="bg-red-50 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-lg">Export CSV</button>
                   <button onClick={handlePrint} className="bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-lg">Print</button>
                 </div>
               </div>
@@ -284,7 +281,7 @@ export default function ReportsPage() {
             <div className="print-only px-6 py-4 border-b border-gray-200">
               <h1 className="text-xl font-bold text-gray-900">DYFI Padanolsavam | Meenara Unit</h1>
               <p className="text-sm text-gray-600">
-                Student Report — Year: {selectedYear}{classFilter ? ` · Class ${classFilter}` : ''}
+                Student Report &mdash; Year: {selectedYear}{classFilter ? ` - Class ${classFilter}` : ''}
               </p>
               <p className="text-xs text-gray-400">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             </div>
@@ -292,13 +289,13 @@ export default function ReportsPage() {
             {/* Summary */}
             <div className="px-4 pt-4 pb-2">
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <div className="bg-blue-50 rounded-xl p-3 text-center">
+                <div className="bg-red-50 rounded-xl p-3 text-center">
                   <p className="text-xs text-gray-500 mb-1">Total Students</p>
-                  <p className="font-bold text-blue-900 text-lg">{filteredStudents.length}</p>
+                  <p className="font-bold text-red-900 text-lg">{filteredStudents.length}</p>
                 </div>
-                <div className="bg-indigo-50 rounded-xl p-3 text-center">
+                <div className="bg-orange-50 rounded-xl p-3 text-center">
                   <p className="text-xs text-gray-500 mb-1">Year</p>
-                  <p className="font-bold text-indigo-800 text-sm">{selectedYear || '—'}</p>
+                  <p className="font-bold text-orange-800 text-sm">{selectedYear || '&mdash;'}</p>
                 </div>
               </div>
             </div>
@@ -309,14 +306,18 @@ export default function ReportsPage() {
                 <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton h-10 rounded-xl" />)}</div>
               ) : filteredStudents.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
-                  <p className="text-4xl mb-2">🎓</p>
+                  <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg viewBox="0 0 24 24" className="w-8 h-8 fill-red-200">
+                      <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.4L5.47 11.6 4 12.44V17l8 4 8-4v-4.56l-1.47-.84L12 15.4z" />
+                    </svg>
+                  </div>
                   <p className="font-medium text-gray-600">No students found</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-gray-100">
                   <table className="w-full text-xs min-w-[560px]">
                     <thead>
-                      <tr className="bg-gray-50 border-b border-gray-100">
+                      <tr className="bg-red-50 border-b border-red-100">
                         <th className="text-left px-3 py-2.5 font-semibold text-gray-600">#</th>
                         <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Name</th>
                         <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Class</th>
@@ -332,7 +333,7 @@ export default function ReportsPage() {
                           <td className="px-3 py-2 text-gray-400">{idx + 1}</td>
                           <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">{s.student_name}</td>
                           <td className="px-3 py-2">
-                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{s.class}</span>
+                            <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-semibold">{s.class}</span>
                           </td>
                           <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{s.parent_phone}</td>
                           <td className="px-3 py-2 text-gray-600 max-w-[120px] truncate">{s.house_name}</td>
@@ -342,7 +343,7 @@ export default function ReportsPage() {
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr className="bg-gray-100 border-t-2 border-gray-200">
+                      <tr className="bg-red-50 border-t-2 border-red-100">
                         <td colSpan={7} className="px-3 py-2.5 font-bold text-gray-700 text-xs">
                           Total: {filteredStudents.length} students{classFilter ? ` in Class ${classFilter}` : ''}
                         </td>
@@ -359,10 +360,12 @@ export default function ReportsPage() {
       {/* Floating print button */}
       <button
         onClick={handlePrint}
-        className="no-print fixed bottom-20 right-4 w-14 h-14 bg-blue-900 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform z-20"
+        className="no-print fixed bottom-20 right-4 w-14 h-14 bg-red-800 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform z-20"
         title="Print Report"
       >
-        <span className="text-white text-xl">🖨️</span>
+        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
+          <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
+        </svg>
       </button>
     </div>
   );

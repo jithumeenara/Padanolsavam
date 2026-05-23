@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { addIncome, addExpense } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
@@ -7,7 +7,6 @@ import { getSession } from '@/lib/auth';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/types';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/components/ToastContext';
-import { useEffect } from 'react';
 
 function AddFinanceForm() {
   const router = useRouter();
@@ -63,8 +62,15 @@ function AddFinanceForm() {
 
   return (
     <div className="page-enter max-w-lg mx-auto">
+      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-4 bg-white shadow-sm sticky top-0 z-10">
-        <button onClick={() => router.back()} className="text-2xl text-gray-500 active:scale-90 transition-transform">â†</button>
+        <button
+          onClick={() => router.back()}
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-red-50 text-red-800 font-bold text-lg active:scale-90 transition-transform"
+          aria-label="Back"
+        >
+          &lsaquo;
+        </button>
         <h2 className="font-bold text-gray-800 text-base">Add Transaction</h2>
       </div>
 
@@ -74,19 +80,24 @@ function AddFinanceForm() {
           <button
             type="button"
             onClick={() => setType('income')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${type === 'income' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500'}`}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              type === 'income' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500'
+            }`}
           >
-            â¬†ï¸ Income
+            Income
           </button>
           <button
             type="button"
             onClick={() => setType('expenses')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${type === 'expenses' ? 'bg-red-600 text-white shadow-sm' : 'text-gray-500'}`}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              type === 'expenses' ? 'bg-red-700 text-white shadow-sm' : 'text-gray-500'
+            }`}
           >
-            â¬‡ï¸ Expense
+            Expense
           </button>
         </div>
 
+        {/* Title */}
         <div>
           <label className="text-sm font-semibold text-gray-700 block mb-1.5">Title *</label>
           <input
@@ -98,8 +109,9 @@ function AddFinanceForm() {
           />
         </div>
 
+        {/* Amount */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 block mb-1.5">Amount (â‚¹) *</label>
+          <label className="text-sm font-semibold text-gray-700 block mb-1.5">Amount (Rs.) *</label>
           <input
             type="number"
             inputMode="numeric"
@@ -112,6 +124,7 @@ function AddFinanceForm() {
           />
         </div>
 
+        {/* Category */}
         <div>
           <label className="text-sm font-semibold text-gray-700 block mb-1.5">Category</label>
           <select
@@ -124,6 +137,7 @@ function AddFinanceForm() {
           </select>
         </div>
 
+        {/* Payment Method */}
         <div>
           <label className="text-sm font-semibold text-gray-700 block mb-1.5">Payment Method</label>
           <div className="flex gap-2 flex-wrap">
@@ -132,7 +146,11 @@ function AddFinanceForm() {
                 key={m}
                 type="button"
                 onClick={() => setField('payment_method', m)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors ${form.payment_method === m ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                  form.payment_method === m
+                    ? 'bg-red-700 text-white'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
               >
                 {m}
               </button>
@@ -140,10 +158,16 @@ function AddFinanceForm() {
           </div>
         </div>
 
+        {/* Bill upload for expenses */}
         {type === 'expenses' && (
-          <ImageUpload value={form.bill_url} onChange={url => setField('bill_url', url)} label="Bill / Receipt (optional)" />
+          <ImageUpload
+            value={form.bill_url}
+            onChange={url => setField('bill_url', url)}
+            label="Bill / Receipt (optional)"
+          />
         )}
 
+        {/* Remarks */}
         <div>
           <label className="text-sm font-semibold text-gray-700 block mb-1.5">Remarks</label>
           <textarea
@@ -158,7 +182,9 @@ function AddFinanceForm() {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full text-white rounded-xl py-3.5 font-semibold text-sm disabled:opacity-50 transition-colors ${type === 'income' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+          className={`w-full text-white rounded-xl py-3.5 font-semibold text-sm disabled:opacity-50 transition-colors ${
+            type === 'income' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-700 hover:bg-red-800'
+          }`}
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -176,11 +202,10 @@ export default function AddFinancePage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center h-48">
-        <div className="w-8 h-8 border-2 border-blue-900 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-red-700 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <AddFinanceForm />
     </Suspense>
   );
 }
-

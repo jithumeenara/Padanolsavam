@@ -17,29 +17,22 @@ function AddStudentForm() {
 
   const [session, setSession] = useState<ReturnType<typeof getSession>>(null);
   const [form, setForm] = useState({
-    student_name: '', class: '1', parent_phone: '', address: '', house_name: '', remarks: '', photo_url: ''
+    student_name: '', class: '1', parent_phone: '',
+    address: '', house_name: '', remarks: '', photo_url: ''
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setSession(getSession());
-  }, []);
+  useEffect(() => { setSession(getSession()); }, []);
 
   useEffect(() => {
     if (editId && activeYear) {
       getStudents(activeYear).then(list => {
         const s = list.find((x: Student) => x.id === editId);
-        if (s) {
-          setForm({
-            student_name: s.student_name,
-            class: s.class,
-            parent_phone: s.parent_phone,
-            address: s.address,
-            house_name: s.house_name,
-            remarks: s.remarks,
-            photo_url: s.photo_url,
-          });
-        }
+        if (s) setForm({
+          student_name: s.student_name, class: s.class,
+          parent_phone: s.parent_phone, address: s.address,
+          house_name: s.house_name, remarks: s.remarks, photo_url: s.photo_url,
+        });
       }).catch(console.error);
     }
   }, [editId, activeYear]);
@@ -50,9 +43,8 @@ function AddStudentForm() {
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
-    if (!form.student_name || !form.class) { toast('Name and class are required', 'error'); return; }
-    if (!activeYear) { toast('No active year selected. Set one in Settings.', 'error'); return; }
-
+    if (!form.student_name) { toast('Student name is required', 'error'); return; }
+    if (!activeYear) { toast('No active year. Set one in Settings.', 'error'); return; }
     setLoading(true);
     try {
       if (editId) {
@@ -66,7 +58,7 @@ function AddStudentForm() {
     } catch (err) {
       if (!navigator.onLine) {
         const queue = JSON.parse(localStorage.getItem('dyfi_offline_students') || '[]');
-        queue.push({ ...form, added_by: session?.id || '', year: activeYear, _offline: true, _ts: Date.now() });
+        queue.push({ ...form, added_by: session?.id || '', year: activeYear, _ts: Date.now() });
         localStorage.setItem('dyfi_offline_students', JSON.stringify(queue));
         toast('Saved offline. Will sync when connected.', 'info');
         router.back();
@@ -81,7 +73,13 @@ function AddStudentForm() {
   return (
     <div className="page-enter max-w-lg mx-auto">
       <div className="flex items-center gap-3 px-4 py-4 bg-white shadow-sm sticky top-0 z-10">
-        <button onClick={() => router.back()} className="text-2xl text-gray-500 active:scale-90 transition-transform">â†</button>
+        <button
+          onClick={() => router.back()}
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-red-50 text-red-800 font-bold text-lg active:scale-90 transition-transform"
+          aria-label="Back"
+        >
+          &lsaquo;
+        </button>
         <h2 className="font-bold text-gray-800 text-base">{editId ? 'Edit Student' : 'Add Student'}</h2>
       </div>
 
@@ -158,7 +156,7 @@ function AddStudentForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-900 text-white rounded-xl py-3.5 font-semibold text-sm disabled:opacity-50 transition-opacity"
+          className="w-full bg-red-700 hover:bg-red-800 text-white rounded-xl py-3.5 font-semibold text-sm disabled:opacity-50 transition-colors"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -176,11 +174,10 @@ export default function AddStudentPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center h-48">
-        <div className="w-8 h-8 border-2 border-blue-900 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-red-700 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <AddStudentForm />
     </Suspense>
   );
 }
-

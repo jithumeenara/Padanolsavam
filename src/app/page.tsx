@@ -44,32 +44,23 @@ export default function LoginPage() {
     }
   }
 
-  function handlePasswordDone() {
-    setShowPwChange(false);
-    router.push('/dashboard');
-  }
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 px-4">
-      {/* Logo & Title */}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-950 via-red-900 to-red-800 px-4">
       <div className="mb-8 text-center">
         <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
           <DyfiLogo size={52} />
         </div>
         <h1 className="text-3xl font-bold text-white tracking-tight">Padanolsavam</h1>
-        <p className="text-blue-200 text-sm mt-1">DYFI Meenara Unit</p>
+        <p className="text-red-200 text-sm mt-1">DYFI Meenara Unit</p>
       </div>
 
-      {/* Login Card */}
       <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
         <h2 className="text-xl font-bold text-gray-800 mb-1">Welcome back</h2>
         <p className="text-sm text-gray-500 mb-6">Sign in to your account</p>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1.5">
-              Mobile Number
-            </label>
+            <label className="text-sm font-semibold text-gray-700 block mb-1.5">Mobile Number</label>
             <input
               type="tel"
               inputMode="numeric"
@@ -81,11 +72,8 @@ export default function LoginPage() {
               required
             />
           </div>
-
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1.5">
-              Password
-            </label>
+            <label className="text-sm font-semibold text-gray-700 block mb-1.5">Password</label>
             <input
               type="password"
               value={password}
@@ -95,11 +83,10 @@ export default function LoginPage() {
               required
             />
           </div>
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-900 hover:bg-blue-800 active:scale-95 text-white rounded-xl py-3.5 font-semibold text-sm transition-all disabled:opacity-50 mt-2"
+            className="w-full bg-red-700 hover:bg-red-800 active:scale-95 text-white rounded-xl py-3.5 font-semibold text-sm transition-all disabled:opacity-50 mt-2"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -109,17 +96,14 @@ export default function LoginPage() {
             ) : 'Sign In'}
           </button>
         </form>
-
-        <p className="text-center text-xs text-gray-400 mt-6">
-          DYFI Padanolsavam &copy; 2024
-        </p>
+        <p className="text-center text-xs text-gray-400 mt-6">DYFI Padanolsavam &copy; 2024</p>
       </div>
 
       {showPwChange && pendingUser && (
         <ChangePasswordModal
           userId={pendingUser.id}
-          onDone={handlePasswordDone}
-          onLater={handlePasswordDone}
+          onDone={() => { setShowPwChange(false); router.push('/dashboard'); }}
+          onLater={() => { setShowPwChange(false); router.push('/dashboard'); }}
           required
         />
       )}

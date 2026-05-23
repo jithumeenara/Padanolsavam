@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f0f4f8;
-  --foreground: #1a202c;
-  --primary: #1e3a5f;
-  --primary-light: #2d5282;
+  --background: #fdf5f5;
+  --foreground: #1a0a0a;
+  --primary: #9b1c1c;
+  --primary-dark: #7f1d1d;
+  --primary-light: #b91c1c;
 }
 
 @theme inline {
@@ -43,7 +44,7 @@ body {
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #e2e8f0 25%, #f7fafc 50%, #e2e8f0 75%);
+  background: linear-gradient(90deg, #fecaca 25%, #fff1f2 50%, #fecaca 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 0.5rem;
@@ -96,23 +97,16 @@ body {
     print-color-adjust: exact;
   }
 
-  /* Hide header/nav in print */
   header, nav, footer { display: none !important; }
-
-  /* Remove padding from main */
   main { padding-bottom: 0 !important; overflow: visible !important; }
 
-  /* Make tables look great in print */
   table { width: 100%; border-collapse: collapse; font-size: 10pt; }
   th, td { padding: 6px 10px !important; border: 1px solid #ddd !important; }
-  thead tr { background-color: #1e3a5f !important; color: white !important; }
-  tfoot tr { background-color: #f0f4f8 !important; font-weight: bold; }
-  tr:nth-child(even) { background-color: #f9fafb !important; }
+  thead tr { background-color: #9b1c1c !important; color: white !important; }
+  tfoot tr { background-color: #fef2f2 !important; font-weight: bold; }
+  tr:nth-child(even) { background-color: #fff5f5 !important; }
 
-  /* Page break */
   .page-break { page-break-after: always; }
-
-  /* Summary cards */
   .print-area .grid { display: flex; gap: 12px; }
   .print-area .grid > div { flex: 1; border: 1px solid #ddd !important; }
 }

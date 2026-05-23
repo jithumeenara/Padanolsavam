@@ -170,7 +170,7 @@ export default function SettingsPage() {
               />
               <button
                 onClick={handleAddYear}
-                className="bg-blue-900 text-white px-4 py-2.5 rounded-xl text-sm font-semibold"
+                className="bg-red-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold"
               >
                 Add Year
               </button>
@@ -194,7 +194,7 @@ export default function SettingsPage() {
             <button
               onClick={handleSaveSettings}
               disabled={savingSettings}
-              className="w-full bg-blue-900 text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50"
+              className="w-full bg-red-800 text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50"
             >
               {savingSettings ? 'Saving...' : 'Save Settings'}
             </button>
@@ -287,7 +287,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={changingPw}
-            className="w-full bg-blue-900 text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50"
+            className="w-full bg-red-800 text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50"
           >
             {changingPw ? 'Saving...' : 'Change Password'}
           </button>
