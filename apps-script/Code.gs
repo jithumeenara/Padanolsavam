@@ -360,7 +360,7 @@ function handleUploadFile(body) {
   var file = folder.createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   var fileId = file.getId();
-  var url = 'https://drive.google.com/uc?id=' + fileId;
+  var url = 'https://lh3.googleusercontent.com/d/' + fileId;
   return ok({ url: url, fileId: fileId }, 'File uploaded');
 }
 
