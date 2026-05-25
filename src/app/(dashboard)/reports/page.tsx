@@ -165,10 +165,12 @@ export default function ReportsPage() {
             </div>
 
             {/* Print header */}
-            <div className="print-only px-6 py-4 border-b border-gray-200">
-              <h1 className="text-xl font-bold text-gray-900">DYFI Padanolsavam | Meenara Unit</h1>
-              <p className="text-sm text-gray-600">Financial Report &mdash; Year: {selectedYear}</p>
-              <p className="text-xs text-gray-400">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+            <div className="print-only print-doc-header">
+              <h1>പഠനോത്സവം</h1>
+              <h2>DYFI Meenara Unit</h2>
+              <hr />
+              <p className="print-report-label">Financial Report &mdash; Year: {selectedYear}</p>
+              <p className="print-date-label">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             </div>
 
             {/* Summary */}
@@ -278,12 +280,12 @@ export default function ReportsPage() {
             </div>
 
             {/* Print header */}
-            <div className="print-only px-6 py-4 border-b border-gray-200">
-              <h1 className="text-xl font-bold text-gray-900">DYFI Padanolsavam | Meenara Unit</h1>
-              <p className="text-sm text-gray-600">
-                Student Report &mdash; Year: {selectedYear}{classFilter ? ` - Class ${classFilter}` : ''}
-              </p>
-              <p className="text-xs text-gray-400">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+            <div className="print-only print-doc-header">
+              <h1>പഠനോത്സവം</h1>
+              <h2>DYFI Meenara Unit</h2>
+              <hr />
+              <p className="print-report-label">Student Report &mdash; Year: {selectedYear}{classFilter ? ` | Class ${classFilter}` : ''}</p>
+              <p className="print-date-label">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             </div>
 
             {/* Summary */}

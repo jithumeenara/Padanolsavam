@@ -86,27 +86,100 @@ body {
 .print-only { display: none; }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 18mm 20mm 20mm 20mm;
+  }
+
   .no-print { display: none !important; }
   .print-only { display: block !important; }
+
+  * {
+    font-family: 'Anek Malayalam', sans-serif !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
   body {
     background: white !important;
     color: #111 !important;
     font-size: 11pt;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 
   header, nav, footer { display: none !important; }
   main { padding-bottom: 0 !important; overflow: visible !important; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-  th, td { padding: 6px 10px !important; border: 1px solid #ddd !important; }
-  thead tr { background-color: #9b1c1c !important; color: white !important; }
-  tfoot tr { background-color: #fef2f2 !important; font-weight: bold; }
-  tr:nth-child(even) { background-color: #fff5f5 !important; }
+  /* ---- Document Header ---- */
+  .print-doc-header {
+    text-align: center;
+    margin-bottom: 14pt;
+  }
+  .print-doc-header h1 {
+    font-size: 26pt;
+    font-weight: 800;
+    color: #7f1d1d !important;
+    margin: 0 0 2pt 0;
+    line-height: 1.2;
+    letter-spacing: 0.5pt;
+  }
+  .print-doc-header h2 {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #333 !important;
+    margin: 0 0 10pt 0;
+    letter-spacing: 0.3pt;
+  }
+  .print-doc-header hr {
+    border: none;
+    border-top: 2pt solid #7f1d1d !important;
+    margin: 0 0 8pt 0;
+  }
+  .print-doc-header .print-report-label {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #444 !important;
+    margin: 0 0 2pt 0;
+  }
+  .print-doc-header .print-date-label {
+    font-size: 9pt;
+    color: #777 !important;
+    margin: 0;
+  }
+
+  /* ---- Summary boxes ---- */
+  .print-summary {
+    display: flex;
+    gap: 10pt;
+    margin-bottom: 12pt;
+  }
+  .print-summary-box {
+    flex: 1;
+    border: 1pt solid #ddd !important;
+    border-radius: 4pt;
+    padding: 6pt 8pt;
+    text-align: center;
+  }
+  .print-summary-box .label { font-size: 8pt; color: #666 !important; }
+  .print-summary-box .value { font-size: 12pt; font-weight: 700; }
+
+  /* ---- Table ---- */
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 4pt; }
+  th {
+    background-color: #7f1d1d !important;
+    color: white !important;
+    padding: 6pt 8pt !important;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9pt;
+  }
+  td { padding: 5pt 8pt !important; border-bottom: 0.5pt solid #eee !important; }
+  tr:nth-child(even) td { background-color: #fdf5f5 !important; }
+  tfoot td {
+    background-color: #fef2f2 !important;
+    font-weight: 700;
+    border-top: 1.5pt solid #7f1d1d !important;
+    font-size: 10pt;
+  }
 
   .page-break { page-break-after: always; }
-  .print-area .grid { display: flex; gap: 12px; }
-  .print-area .grid > div { flex: 1; border: 1px solid #ddd !important; }
 }
