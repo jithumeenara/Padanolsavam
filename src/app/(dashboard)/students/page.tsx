@@ -7,6 +7,7 @@ import { getSession } from '@/lib/auth';
 import { formatDate } from '@/lib/utils';
 import { Student, CLASS_OPTIONS } from '@/types';
 import { useToast } from '@/components/ToastContext';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { AuthUser } from '@/types';
 
 export default function StudentsPage() {
@@ -17,6 +18,7 @@ export default function StudentsPage() {
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [session, setSession] = useState<AuthUser | null>(null);
 
   useEffect(() => { setSession(getSession()); }, []);
@@ -49,22 +51,34 @@ export default function StudentsPage() {
     });
   }, [students, search, filterClass]);
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this student?')) return;
-    setDeleting(id);
+  async function handleDelete() {
+    if (!confirmId) return;
+    setDeleting(confirmId);
     try {
-      await deleteStudent(id);
-      setStudents(prev => prev.filter(s => s.id !== id));
+      await deleteStudent(confirmId);
+      setStudents(prev => prev.filter(s => s.id !== confirmId));
       toast('Student deleted', 'success');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Delete failed', 'error');
     } finally {
       setDeleting(null);
+      setConfirmId(null);
     }
   }
 
+  const confirmStudent = students.find(s => s.id === confirmId);
+
   return (
     <div className="page-enter">
+      <ConfirmDialog
+        open={!!confirmId}
+        title="Delete Student"
+        message={confirmStudent ? `Remove "${confirmStudent.student_name}" from ${activeYear}? This cannot be undone.` : ''}
+        confirmLabel="Delete"
+        loading={deleting === confirmId}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmId(null)}
+      />
       {/* Search & Filter */}
       <div className="px-4 pt-4 pb-2 space-y-3 bg-white sticky top-0 z-10 shadow-sm">
         <div className="relative">
@@ -145,7 +159,7 @@ export default function StudentsPage() {
                     <Link href={`/students/add?id=${s.id}`} className="text-xs text-red-700 font-medium">Edit</Link>
                     {session?.role === 'admin' && (
                       <button
-                        onClick={() => handleDelete(s.id)}
+                        onClick={() => setConfirmId(s.id)}
                         disabled={deleting === s.id}
                         className="text-xs text-red-500 font-medium disabled:opacity-50"
                       >
