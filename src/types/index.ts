@@ -50,6 +50,8 @@ export interface Expense {
 export interface Settings {
   default_year: string;
   app_name: string;
+  income_categories?: string[];
+  expense_categories?: string[];
   updated_at: string;
 }
 

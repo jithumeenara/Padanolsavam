@@ -1,7 +1,7 @@
 'use client';
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { addIncome, addExpense } from '@/lib/api';
+import { addIncome, addExpense, getSettings } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
 import { getSession } from '@/lib/auth';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/types';
@@ -21,10 +21,18 @@ function AddFinanceForm() {
   });
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState('');
+  const [incomeCategories, setIncomeCategories] = useState<string[]>(INCOME_CATEGORIES);
+  const [expenseCategories, setExpenseCategories] = useState<string[]>(EXPENSE_CATEGORIES);
 
   useEffect(() => {
     const s = getSession();
     if (s) setUserId(s.id);
+    getSettings().then(({ settings }) => {
+      if (Array.isArray(settings?.income_categories) && settings.income_categories.length > 0)
+        setIncomeCategories(settings.income_categories);
+      if (Array.isArray(settings?.expense_categories) && settings.expense_categories.length > 0)
+        setExpenseCategories(settings.expense_categories);
+    }).catch(() => {});
   }, []);
 
   function setField(field: string, value: string) {
@@ -58,7 +66,7 @@ function AddFinanceForm() {
     }
   }
 
-  const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const categories = type === 'income' ? incomeCategories : expenseCategories;
 
   return (
     <div className="page-enter max-w-lg mx-auto">

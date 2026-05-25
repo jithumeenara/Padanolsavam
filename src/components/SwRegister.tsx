@@ -7,17 +7,15 @@ export default function SwRegister() {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
 
-    // Sync offline students when back online
+    // Sync offline students queued while offline
     function syncOfflineStudents() {
       const queue = JSON.parse(localStorage.getItem('dyfi_offline_students') || '[]');
       if (!queue.length) return;
-      const url = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL;
-      if (!url) return;
       queue.forEach((item: Record<string, unknown>) => {
-        fetch(url, {
+        fetch('/api/students', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'addStudent', ...item }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
         }).then(r => r.json()).then(res => {
           if (res.success) {
             const q = JSON.parse(localStorage.getItem('dyfi_offline_students') || '[]');

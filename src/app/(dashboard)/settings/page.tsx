@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { getSettings, updateSettings, addYear, getUsers, addUser, toggleUser, changePassword } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
 import { getSession } from '@/lib/auth';
-import { Year, User, AuthUser } from '@/types';
+import { Year, User, AuthUser, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
 import { useToast } from '@/components/ToastContext';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -37,12 +37,22 @@ export default function SettingsPage() {
   const [pwForm, setPwForm] = useState({ newPw: '', confirm: '' });
   const [changingPw, setChangingPw] = useState(false);
 
+  const [incomeCategories, setIncomeCategories] = useState<string[]>(INCOME_CATEGORIES);
+  const [expenseCategories, setExpenseCategories] = useState<string[]>(EXPENSE_CATEGORIES);
+  const [newIncomeCat, setNewIncomeCat] = useState('');
+  const [newExpenseCat, setNewExpenseCat] = useState('');
+  const [savingCats, setSavingCats] = useState(false);
+
   async function loadData(admin: boolean) {
     setLoading(true);
     try {
       const { settings, years: y } = await getSettings();
       setYears(y);
       setAppName(settings?.app_name || 'Padanolsavam');
+      if (Array.isArray(settings?.income_categories) && settings.income_categories.length > 0)
+        setIncomeCategories(settings.income_categories);
+      if (Array.isArray(settings?.expense_categories) && settings.expense_categories.length > 0)
+        setExpenseCategories(settings.expense_categories);
       if (admin) {
         const u = await getUsers();
         setUsers(u);
@@ -112,6 +122,34 @@ export default function SettingsPage() {
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed', 'error');
     }
+  }
+
+  async function handleSaveCategories() {
+    setSavingCats(true);
+    try {
+      await updateSettings({ income_categories: incomeCategories, expense_categories: expenseCategories });
+      toast('Categories saved!', 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed', 'error');
+    } finally {
+      setSavingCats(false);
+    }
+  }
+
+  function addIncomeCat() {
+    const v = newIncomeCat.trim();
+    if (!v) return;
+    if (incomeCategories.includes(v)) { toast('Already exists', 'error'); return; }
+    setIncomeCategories(prev => [...prev, v]);
+    setNewIncomeCat('');
+  }
+
+  function addExpenseCat() {
+    const v = newExpenseCat.trim();
+    if (!v) return;
+    if (expenseCategories.includes(v)) { toast('Already exists', 'error'); return; }
+    setExpenseCategories(prev => [...prev, v]);
+    setNewExpenseCat('');
   }
 
   async function handleChangePassword(e: React.SyntheticEvent) {
@@ -197,6 +235,90 @@ export default function SettingsPage() {
               className="w-full bg-red-800 text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50"
             >
               {savingSettings ? 'Saving...' : 'Save Settings'}
+            </button>
+          </div>
+        </Section>
+      )}
+
+      {/* Category Management — admin only */}
+      {isAdmin && (
+        <Section title="Category Management">
+          <div className="space-y-5">
+
+            {/* Income Categories */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Income Categories</p>
+              <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
+                {incomeCategories.map((c, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 bg-green-50 text-green-800 border border-green-200 text-xs font-medium px-2.5 py-1.5 rounded-full">
+                    {c}
+                    <button
+                      onClick={() => setIncomeCategories(prev => prev.filter((_, j) => j !== i))}
+                      className="text-green-500 hover:text-red-600 font-bold leading-none ml-0.5"
+                      aria-label={`Remove ${c}`}
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newIncomeCat}
+                  onChange={e => setNewIncomeCat(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addIncomeCat())}
+                  placeholder="New income category"
+                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50"
+                />
+                <button
+                  onClick={addIncomeCat}
+                  className="bg-green-600 text-white px-3 py-2.5 rounded-xl text-sm font-semibold"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* Expense Categories */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Expense Categories</p>
+              <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
+                {expenseCategories.map((c, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 bg-red-50 text-red-800 border border-red-200 text-xs font-medium px-2.5 py-1.5 rounded-full">
+                    {c}
+                    <button
+                      onClick={() => setExpenseCategories(prev => prev.filter((_, j) => j !== i))}
+                      className="text-red-400 hover:text-red-700 font-bold leading-none ml-0.5"
+                      aria-label={`Remove ${c}`}
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newExpenseCat}
+                  onChange={e => setNewExpenseCat(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addExpenseCat())}
+                  placeholder="New expense category"
+                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50"
+                />
+                <button
+                  onClick={addExpenseCat}
+                  className="bg-red-800 text-white px-3 py-2.5 rounded-xl text-sm font-semibold"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSaveCategories}
+              disabled={savingCats}
+              className="w-full bg-red-800 text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50"
+            >
+              {savingCats ? 'Saving...' : 'Save Categories'}
             </button>
           </div>
         </Section>

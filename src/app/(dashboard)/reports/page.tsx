@@ -140,6 +140,20 @@ export default function ReportsPage() {
       {/* Printable area */}
       <div ref={printRef} className="print-area">
 
+        {/* Single shared header — position:fixed in print so it repeats on every page */}
+        <div className="print-only print-doc-header">
+          <h1>പഠനോത്സവം</h1>
+          <h2>DYFI Meenara Unit</h2>
+          <hr />
+          <p className="print-report-label">
+            {tab === 'financial' ? 'Financial Report' : 'Student Report'}&nbsp;&mdash;&nbsp;Year:&nbsp;{selectedYear}
+            {tab === 'students' && classFilter ? ` | Class ${classFilter}` : ''}
+          </p>
+          <p className="print-date-label">
+            Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+
         {/* Financial Report */}
         {tab === 'financial' && (
           <div>
@@ -164,28 +178,19 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            {/* Print header */}
-            <div className="print-only print-doc-header">
-              <h1>പഠനോത്സവം</h1>
-              <h2>DYFI Meenara Unit</h2>
-              <hr />
-              <p className="print-report-label">Financial Report &mdash; Year: {selectedYear}</p>
-              <p className="print-date-label">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-            </div>
-
             {/* Summary */}
-            <div className="px-4 pt-4 pb-2 grid grid-cols-3 gap-3">
-              <div className="bg-green-50 rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-500 mb-1">Total Income</p>
-                <p className="font-bold text-green-700 text-sm">{formatCurrency(totalIncome)}</p>
+            <div className="px-4 pt-4 pb-2 grid grid-cols-3 gap-3 print-summary">
+              <div className="bg-green-50 rounded-xl p-3 text-center print-summary-box">
+                <p className="text-xs text-gray-500 mb-1 label">Total Income</p>
+                <p className="font-bold text-green-700 text-sm value">{formatCurrency(totalIncome)}</p>
               </div>
-              <div className="bg-red-50 rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-500 mb-1">Total Expense</p>
-                <p className="font-bold text-red-700 text-sm">{formatCurrency(totalExpense)}</p>
+              <div className="bg-red-50 rounded-xl p-3 text-center print-summary-box">
+                <p className="text-xs text-gray-500 mb-1 label">Total Expense</p>
+                <p className="font-bold text-red-700 text-sm value">{formatCurrency(totalExpense)}</p>
               </div>
-              <div className={`${balance >= 0 ? 'bg-emerald-50' : 'bg-orange-50'} rounded-xl p-3 text-center`}>
-                <p className="text-xs text-gray-500 mb-1">Balance</p>
-                <p className={`font-bold text-sm ${balance >= 0 ? 'text-emerald-700' : 'text-orange-700'}`}>{formatCurrency(balance)}</p>
+              <div className={`${balance >= 0 ? 'bg-emerald-50' : 'bg-orange-50'} rounded-xl p-3 text-center print-summary-box`}>
+                <p className="text-xs text-gray-500 mb-1 label">Balance</p>
+                <p className={`font-bold text-sm ${balance >= 0 ? 'text-emerald-700' : 'text-orange-700'} value`}>{formatCurrency(balance)}</p>
               </div>
             </div>
 
@@ -279,25 +284,16 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            {/* Print header */}
-            <div className="print-only print-doc-header">
-              <h1>പഠനോത്സവം</h1>
-              <h2>DYFI Meenara Unit</h2>
-              <hr />
-              <p className="print-report-label">Student Report &mdash; Year: {selectedYear}{classFilter ? ` | Class ${classFilter}` : ''}</p>
-              <p className="print-date-label">Printed: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-            </div>
-
             {/* Summary */}
             <div className="px-4 pt-4 pb-2">
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div className="bg-red-50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-500 mb-1">Total Students</p>
-                  <p className="font-bold text-red-900 text-lg">{filteredStudents.length}</p>
+              <div className="grid grid-cols-2 gap-3 mb-3 print-summary">
+                <div className="bg-red-50 rounded-xl p-3 text-center print-summary-box">
+                  <p className="text-xs text-gray-500 mb-1 label">Total Students</p>
+                  <p className="font-bold text-red-900 text-lg value">{filteredStudents.length}</p>
                 </div>
-                <div className="bg-orange-50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-500 mb-1">Year</p>
-                  <p className="font-bold text-orange-800 text-sm">{selectedYear || '&mdash;'}</p>
+                <div className="bg-orange-50 rounded-xl p-3 text-center print-summary-box">
+                  <p className="text-xs text-gray-500 mb-1 label">Year</p>
+                  <p className="font-bold text-orange-800 text-sm value">{selectedYear || '—'}</p>
                 </div>
               </div>
             </div>

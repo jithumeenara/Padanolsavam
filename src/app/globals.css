@@ -88,7 +88,7 @@ body {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 18mm 20mm 20mm 20mm;
+    margin: 15mm 20mm 20mm 20mm;
   }
 
   .no-print { display: none !important; }
@@ -98,6 +98,10 @@ body {
     font-family: 'Anek Malayalam', sans-serif !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    background-color: white !important;
+    background: white !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 
   body {
@@ -109,77 +113,96 @@ body {
   header, nav, footer { display: none !important; }
   main { padding-bottom: 0 !important; overflow: visible !important; }
 
-  /* ---- Document Header ---- */
+  /* ---- Repeating document header on every page ---- */
   .print-doc-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white !important;
     text-align: center;
-    margin-bottom: 14pt;
+    padding-bottom: 8pt;
+    border-bottom: 0.5pt solid #ccc;
   }
   .print-doc-header h1 {
-    font-size: 26pt;
+    font-size: 24pt;
     font-weight: 800;
     color: #7f1d1d !important;
     margin: 0 0 2pt 0;
     line-height: 1.2;
     letter-spacing: 0.5pt;
+    background: white !important;
   }
   .print-doc-header h2 {
-    font-size: 13pt;
+    font-size: 12pt;
     font-weight: 600;
     color: #333 !important;
-    margin: 0 0 10pt 0;
+    margin: 0 0 6pt 0;
     letter-spacing: 0.3pt;
+    background: white !important;
   }
   .print-doc-header hr {
     border: none;
-    border-top: 2pt solid #7f1d1d !important;
-    margin: 0 0 8pt 0;
+    border-top: 1.5pt solid #7f1d1d !important;
+    margin: 0 0 6pt 0;
+    background: white !important;
   }
   .print-doc-header .print-report-label {
-    font-size: 11pt;
+    font-size: 10pt;
     font-weight: 600;
     color: #444 !important;
     margin: 0 0 2pt 0;
   }
   .print-doc-header .print-date-label {
-    font-size: 9pt;
+    font-size: 8.5pt;
     color: #777 !important;
     margin: 0;
+  }
+
+  /* Push content below the fixed header */
+  .print-area {
+    padding-top: 108pt;
   }
 
   /* ---- Summary boxes ---- */
   .print-summary {
     display: flex;
-    gap: 10pt;
-    margin-bottom: 12pt;
+    gap: 8pt;
+    margin-bottom: 10pt;
   }
   .print-summary-box {
     flex: 1;
-    border: 1pt solid #ddd !important;
-    border-radius: 4pt;
-    padding: 6pt 8pt;
+    border: 1pt solid #bbb !important;
+    border-radius: 3pt;
+    padding: 5pt 8pt;
     text-align: center;
+    background: white !important;
   }
-  .print-summary-box .label { font-size: 8pt; color: #666 !important; }
-  .print-summary-box .value { font-size: 12pt; font-weight: 700; }
+  .print-summary-box .label { font-size: 8pt; color: #555 !important; display: block; margin-bottom: 2pt; }
+  .print-summary-box .value { font-size: 12pt; font-weight: 700; display: block; }
 
   /* ---- Table ---- */
-  table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 4pt; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 6pt; }
   th {
     background-color: #7f1d1d !important;
     color: white !important;
-    padding: 6pt 8pt !important;
+    padding: 5.5pt 7pt !important;
     text-align: left;
     font-weight: 600;
-    font-size: 9pt;
+    font-size: 8.5pt;
   }
-  td { padding: 5pt 8pt !important; border-bottom: 0.5pt solid #eee !important; }
-  tr:nth-child(even) td { background-color: #fdf5f5 !important; }
+  td { padding: 5pt 7pt !important; border-bottom: 0.5pt solid #ddd !important; color: #111 !important; }
+  tr:nth-child(even) td { background-color: #f5f5f5 !important; }
   tfoot td {
-    background-color: #fef2f2 !important;
+    background-color: #f0f0f0 !important;
     font-weight: 700;
     border-top: 1.5pt solid #7f1d1d !important;
     font-size: 10pt;
+    color: #111 !important;
   }
+
+  /* Inline colored badges: remove fill, keep text */
+  span { background-color: transparent !important; border: none !important; }
 
   .page-break { page-break-after: always; }
 }
