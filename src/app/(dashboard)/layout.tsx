@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession, clearSession } from '@/lib/auth';
 import { getSettings } from '@/lib/api';
+import { clearCache } from '@/lib/cache';
 import { useYear } from '@/hooks/useYear';
 import BottomNav from '@/components/BottomNav';
 import { AuthUser } from '@/types';
@@ -31,6 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   function handleLogout() {
     clearSession();
+    clearCache();
     router.replace('/');
   }
 

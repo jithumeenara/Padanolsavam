@@ -71,6 +71,26 @@ function err(message) {
   return respond({ success: false, data: null, message: message });
 }
 
+// ---- Cache Helpers (Apps Script CacheService, 60s TTL) ----
+
+function _cacheGet(key) {
+  try {
+    var raw = CacheService.getScriptCache().get(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function _cacheSet(key, data) {
+  try {
+    var str = JSON.stringify(data);
+    if (str.length < 90000) CacheService.getScriptCache().put(key, str, 60);
+  } catch(e) {}
+}
+
+function _cacheDel(key) {
+  try { CacheService.getScriptCache().remove(key); } catch(e) {}
+}
+
 // ---- Sheet Helper ----
 
 function getSheet(name) {
@@ -78,15 +98,22 @@ function getSheet(name) {
 }
 
 function getSheetData(name) {
+  var cached = _cacheGet('sh_' + name);
+  if (cached) return cached;
+
   var sheet = getSheet(name);
   var values = sheet.getDataRange().getValues();
-  if (values.length <= 1) return [];
-  var headers = values[0];
-  return values.slice(1).map(function(row) {
-    var obj = {};
-    headers.forEach(function(h, i) { obj[h] = row[i]; });
-    return obj;
-  });
+  var result = [];
+  if (values.length > 1) {
+    var headers = values[0];
+    result = values.slice(1).map(function(row) {
+      var obj = {};
+      headers.forEach(function(h, i) { obj[h] = row[i]; });
+      return obj;
+    });
+  }
+  _cacheSet('sh_' + name, result);
+  return result;
 }
 
 function appendRow(sheetName, rowObj) {
@@ -94,6 +121,7 @@ function appendRow(sheetName, rowObj) {
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var row = headers.map(function(h) { return rowObj[h] !== undefined ? rowObj[h] : ''; });
   sheet.appendRow(row);
+  _cacheDel('sh_' + sheetName);
 }
 
 function updateRow(sheetName, idValue, updates) {
@@ -107,6 +135,7 @@ function updateRow(sheetName, idValue, updates) {
         var col = headers.indexOf(key);
         if (col !== -1) sheet.getRange(i + 1, col + 1).setValue(updates[key]);
       });
+      _cacheDel('sh_' + sheetName);
       return true;
     }
   }
@@ -121,6 +150,7 @@ function deleteRow(sheetName, idValue) {
   for (var i = data.length - 1; i >= 1; i--) {
     if (String(data[i][idCol]) === String(idValue)) {
       sheet.deleteRow(i + 1);
+      _cacheDel('sh_' + sheetName);
       return true;
     }
   }
