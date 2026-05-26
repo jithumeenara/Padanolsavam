@@ -128,7 +128,7 @@ export const updateFinance = (type: 'income' | 'expenses', id: string, data: Rec
 
 export const deleteFinance = (type: 'income' | 'expenses', id: string) => {
   bustCache(`finance:${type}:`);
-  return apiFetch(`/api/finance/${id}`, 'DELETE', undefined);
+  return apiFetch(`/api/finance/${id}?type=${type}`, 'DELETE', undefined);
 };
 
 // ---- Upload ----
