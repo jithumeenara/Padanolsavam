@@ -1,21 +1,31 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getFinance } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { getFinance, deleteFinance } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
+import { getSession } from '@/lib/auth';
 import { formatCurrency, formatDate, downloadCSV } from '@/lib/utils';
-import { Income, Expense } from '@/types';
+import { Income, Expense, AuthUser } from '@/types';
 import { useToast } from '@/components/ToastContext';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 type Tab = 'income' | 'expenses';
+type AnyEntry = (Income | Expense) & { _type: Tab };
 
 export default function FinancePage() {
   const { activeYear } = useYear();
   const { toast } = useToast();
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>('income');
   const [income, setIncome] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<AuthUser | null>(null);
+  const [confirm, setConfirm] = useState<AnyEntry | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => { setSession(getSession()); }, []);
 
   async function load() {
     if (!activeYear) { setLoading(false); return; }
@@ -39,13 +49,30 @@ export default function FinancePage() {
   const totalIncome = income.reduce((s, r) => s + Number(r.amount || 0), 0);
   const totalExpense = expenses.reduce((s, r) => s + Number(r.amount || 0), 0);
   const balance = totalIncome - totalExpense;
-
-  const list = tab === 'income' ? income : expenses;
+  const list: AnyEntry[] = (tab === 'income' ? income : expenses).map(i => ({ ...i, _type: tab }));
 
   function handleExport() {
     downloadCSV(list as unknown as Record<string, unknown>[], `${tab}_${activeYear}.csv`);
     toast('Exported!', 'success');
   }
+
+  async function handleDelete() {
+    if (!confirm) return;
+    setDeleting(true);
+    try {
+      await deleteFinance(confirm._type, confirm.id);
+      if (confirm._type === 'income') setIncome(prev => prev.filter(i => i.id !== confirm.id));
+      else setExpenses(prev => prev.filter(e => e.id !== confirm.id));
+      toast('Deleted', 'success');
+      setConfirm(null);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  const isAdmin = session?.role === 'admin';
 
   const categoryColor = (cat: string) => {
     const colors: Record<string, string> = {
@@ -61,6 +88,16 @@ export default function FinancePage() {
 
   return (
     <div className="page-enter">
+      <ConfirmDialog
+        open={!!confirm}
+        title="Delete Entry"
+        message={confirm ? `Delete "${confirm.title}" (${formatCurrency(Number(confirm.amount))})?` : ''}
+        confirmLabel="Delete"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirm(null)}
+      />
+
       {/* Summary */}
       <div className="bg-gradient-to-r from-red-950 to-red-800 px-4 py-4">
         <div className="flex justify-around text-center">
@@ -133,22 +170,67 @@ export default function FinancePage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-800 text-sm truncate">{item.title}</p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${categoryColor(item.category)}`}>
-                      {item.category}
-                    </span>
+                    {item.category && (
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${categoryColor(item.category)}`}>
+                        {item.category}
+                      </span>
+                    )}
                     <span className="text-xs text-gray-400">{item.payment_method}</span>
                   </div>
                   {item.remarks && <p className="text-xs text-gray-500 mt-1 truncate">{item.remarks}</p>}
-                  <p className="text-xs text-gray-400 mt-1">{formatDate(item.created_at)}</p>
+
+                  {/* Audit info — admin only */}
+                  {isAdmin && (
+                    <div className="mt-1.5 space-y-0.5">
+                      {item.added_by_name && (
+                        <p className="text-[10px] text-gray-400">
+                          Added by <span className="font-medium text-gray-500">{item.added_by_name}</span>
+                          {' '}&middot; {formatDate(item.created_at)}
+                        </p>
+                      )}
+                      {!item.added_by_name && (
+                        <p className="text-[10px] text-gray-400">{formatDate(item.created_at)}</p>
+                      )}
+                      {item.updated_by_name && (
+                        <p className="text-[10px] text-orange-400">
+                          Edited by <span className="font-medium">{item.updated_by_name}</span>
+                          {item.updated_at ? ` · ${formatDate(item.updated_at)}` : ''}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {!isAdmin && (
+                    <p className="text-xs text-gray-400 mt-1">{formatDate(item.created_at)}</p>
+                  )}
                 </div>
-                <div className="text-right">
+
+                <div className="text-right shrink-0">
                   <p className={`font-bold text-base ${tab === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                     {tab === 'income' ? '+' : '-'}{formatCurrency(Number(item.amount))}
                   </p>
-                  {'bill_url' in item && (item as { bill_url: string }).bill_url && (
-                    <a href={(item as { bill_url: string }).bill_url} target="_blank" rel="noreferrer" className="text-xs text-red-700 mt-1 block">
+                  {'bill_url' in item && (item as Expense).bill_url && (
+                    <a href={(item as Expense).bill_url} target="_blank" rel="noreferrer"
+                      className="text-xs text-red-700 mt-1 block">
                       View Bill
                     </a>
+                  )}
+
+                  {/* Edit / Delete — admin only */}
+                  {isAdmin && (
+                    <div className="flex gap-2 mt-2 justify-end">
+                      <button
+                        onClick={() => router.push(`/finance/add?type=${tab}&id=${item.id}`)}
+                        className="text-xs text-red-700 font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setConfirm(item)}
+                        className="text-xs text-red-400 font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

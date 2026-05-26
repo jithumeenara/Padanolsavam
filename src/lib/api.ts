@@ -118,6 +118,19 @@ export const addExpense = (data: Record<string, unknown>) => {
   return apiFetch<{ id: string }>('/api/finance/expenses', 'POST', data);
 };
 
+export const getFinanceEntry = (type: 'income' | 'expenses', id: string) =>
+  apiFetch<import('@/types').Income | import('@/types').Expense>(`/api/finance/${id}`, 'GET', { type });
+
+export const updateFinance = (type: 'income' | 'expenses', id: string, data: Record<string, unknown>) => {
+  bustCache(`finance:${type}:`);
+  return apiFetch(`/api/finance/${id}`, 'PUT', { type, ...data });
+};
+
+export const deleteFinance = (type: 'income' | 'expenses', id: string) => {
+  bustCache(`finance:${type}:`);
+  return apiFetch(`/api/finance/${id}`, 'DELETE', undefined);
+};
+
 // ---- Upload ----
 export const uploadFile = (base64: string, _fileName: string, mimeType: string) =>
   apiFetch<{ url: string; fileId: string }>('/api/upload', 'POST', { data: base64, mimeType });

@@ -32,6 +32,10 @@ export interface Income {
   year: string;
   created_by: string;
   created_at: string;
+  added_by_name?: string;
+  updated_by?: string;
+  updated_by_name?: string;
+  updated_at?: string;
 }
 
 export interface Expense {
@@ -45,6 +49,10 @@ export interface Expense {
   year: string;
   created_by: string;
   created_at: string;
+  added_by_name?: string;
+  updated_by?: string;
+  updated_by_name?: string;
+  updated_at?: string;
 }
 
 export interface Settings {

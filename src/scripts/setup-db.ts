@@ -94,6 +94,14 @@ async function run() {
       );
     `);
 
+    // Audit columns for edit tracking (idempotent — safe to re-run)
+    await client.query(`
+      ALTER TABLE income    ADD COLUMN IF NOT EXISTS updated_by TEXT;
+      ALTER TABLE income    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
+      ALTER TABLE expenses  ADD COLUMN IF NOT EXISTS updated_by TEXT;
+      ALTER TABLE expenses  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
+    `);
+
     // Indexes for fast queries
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_students_year ON students(year);

@@ -1,7 +1,7 @@
 'use client';
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { addIncome, addExpense, getSettings } from '@/lib/api';
+import { addIncome, addExpense, getSettings, getFinanceEntry, updateFinance } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
 import { getSession } from '@/lib/auth';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, PAYMENT_METHODS } from '@/types';
@@ -15,11 +15,15 @@ function AddFinanceForm() {
   const { toast } = useToast();
 
   const defaultType = searchParams.get('type') === 'expenses' ? 'expenses' : 'income';
+  const editId = searchParams.get('id');
+  const isEdit = !!editId;
+
   const [type, setType] = useState<'income' | 'expenses'>(defaultType);
   const [form, setForm] = useState({
     title: '', amount: '', category: '', payment_method: 'Cash', remarks: '', bill_url: ''
   });
   const [loading, setLoading] = useState(false);
+  const [loadingEntry, setLoadingEntry] = useState(isEdit);
   const [userId, setUserId] = useState('');
   const [incomeCategories, setIncomeCategories] = useState<string[]>(INCOME_CATEGORIES);
   const [expenseCategories, setExpenseCategories] = useState<string[]>(EXPENSE_CATEGORIES);
@@ -35,6 +39,23 @@ function AddFinanceForm() {
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!isEdit || !editId) return;
+    setLoadingEntry(true);
+    getFinanceEntry(defaultType, editId).then(entry => {
+      setForm({
+        title: entry.title || '',
+        amount: String(entry.amount || ''),
+        category: entry.category || '',
+        payment_method: entry.payment_method || 'Cash',
+        remarks: entry.remarks || '',
+        bill_url: ('bill_url' in entry ? entry.bill_url : '') || '',
+      });
+    }).catch(err => {
+      toast(err instanceof Error ? err.message : 'Failed to load entry', 'error');
+    }).finally(() => setLoadingEntry(false));
+  }, [editId]);
+
   function setField(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));
   }
@@ -45,19 +66,19 @@ function AddFinanceForm() {
     if (!form.amount || isNaN(Number(form.amount)) || Number(form.amount) <= 0) {
       toast('Enter a valid amount', 'error'); return;
     }
-    if (!activeYear) { toast('No active year. Set one in Settings.', 'error'); return; }
+    if (!isEdit && !activeYear) { toast('No active year. Set one in Settings.', 'error'); return; }
 
     setLoading(true);
     try {
-      const payload = {
-        ...form,
-        amount: Number(form.amount),
-        year: activeYear,
-        created_by: userId,
-      };
-      if (type === 'income') await addIncome(payload);
-      else await addExpense(payload);
-      toast(`${type === 'income' ? 'Income' : 'Expense'} added!`, 'success');
+      if (isEdit && editId) {
+        await updateFinance(type, editId, { ...form, amount: Number(form.amount), updated_by: userId });
+        toast('Entry updated!', 'success');
+      } else {
+        const payload = { ...form, amount: Number(form.amount), year: activeYear, created_by: userId };
+        if (type === 'income') await addIncome(payload);
+        else await addExpense(payload);
+        toast(`${type === 'income' ? 'Income' : 'Expense'} added!`, 'success');
+      }
       router.back();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to save', 'error');
@@ -67,6 +88,14 @@ function AddFinanceForm() {
   }
 
   const categories = type === 'income' ? incomeCategories : expenseCategories;
+
+  if (loadingEntry) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <div className="w-8 h-8 border-2 border-red-700 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="page-enter max-w-lg mx-auto">
@@ -79,12 +108,12 @@ function AddFinanceForm() {
         >
           &lsaquo;
         </button>
-        <h2 className="font-bold text-gray-800 text-base">Add Transaction</h2>
+        <h2 className="font-bold text-gray-800 text-base">{isEdit ? 'Edit Transaction' : 'Add Transaction'}</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
         {/* Type Toggle */}
-        <div className="flex bg-gray-100 rounded-xl p-1">
+        <div className={`flex bg-gray-100 rounded-xl p-1 ${isEdit ? 'opacity-50 pointer-events-none' : ''}`}>
           <button
             type="button"
             onClick={() => setType('income')}
@@ -199,7 +228,7 @@ function AddFinanceForm() {
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               Saving...
             </span>
-          ) : `Add ${type === 'income' ? 'Income' : 'Expense'}`}
+          ) : isEdit ? 'Save Changes' : `Add ${type === 'income' ? 'Income' : 'Expense'}`}
         </button>
       </form>
     </div>
