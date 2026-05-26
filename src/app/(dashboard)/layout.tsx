@@ -46,12 +46,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <h1 className="font-bold text-base leading-tight">{appName}</h1>
             <p className="text-red-200 text-xs">Meenara Unit</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {activeYear && (
               <span className="bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
                 {activeYear}
               </span>
             )}
+            <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-full">
+              <span className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+                {user?.name?.[0]?.toUpperCase()}
+              </span>
+              <span className="text-white text-xs font-medium max-w-[70px] truncate">{user?.name}</span>
+            </div>
             <button
               onClick={handleLogout}
               className="text-red-100 text-xs font-medium bg-white/10 px-3 py-1.5 rounded-full active:scale-90 transition-all"
