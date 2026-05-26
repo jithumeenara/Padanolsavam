@@ -22,7 +22,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
 
   const [session, setSession] = useState<AuthUser | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = getSession()?.role === 'admin';
 
   const [years, setYears] = useState<Year[]>([]);
   const [appName, setAppName] = useState('');
@@ -69,9 +69,7 @@ export default function SettingsPage() {
   useEffect(() => {
     const s = getSession();
     setSession(s);
-    const admin = s?.role === 'admin';
-    setIsAdmin(admin);
-    loadData(admin);
+    loadData(isAdmin);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -134,7 +132,7 @@ export default function SettingsPage() {
     setSavingUser(true);
     try {
       await updateUser(editingUser.id, { name: editingUser.name.trim(), mobile: editingUser.mobile.trim(), role: editingUser.role });
-      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...editingUser } : u));
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, name: editingUser.name, mobile: editingUser.mobile, role: editingUser.role as 'admin' | 'user' } : u));
       toast('User updated!', 'success');
       setEditingUser(null);
     } catch (err) {

@@ -6,7 +6,7 @@ import { getFinance, deleteFinance } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
 import { getSession } from '@/lib/auth';
 import { formatCurrency, formatDate, downloadCSV } from '@/lib/utils';
-import { Income, Expense, AuthUser } from '@/types';
+import { Income, Expense } from '@/types';
 import { useToast } from '@/components/ToastContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
@@ -21,11 +21,10 @@ export default function FinancePage() {
   const [income, setIncome] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<AuthUser | null>(null);
   const [confirm, setConfirm] = useState<AnyEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => { setSession(getSession()); }, []);
+  const isAdmin = getSession()?.role === 'admin';
 
   async function load() {
     if (!activeYear) { setLoading(false); return; }
@@ -71,8 +70,6 @@ export default function FinancePage() {
       setDeleting(false);
     }
   }
-
-  const isAdmin = session?.role === 'admin';
 
   const categoryColor = (cat: string) => {
     const colors: Record<string, string> = {
