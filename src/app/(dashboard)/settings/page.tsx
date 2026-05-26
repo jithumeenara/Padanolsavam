@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { getSettings, updateSettings, addYear, getUsers, addUser, toggleUser, changePassword } from '@/lib/api';
+import { getSettings, updateSettings, addYear, getUsers, addUser, toggleUser, updateUser, changePassword } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
 import { getSession } from '@/lib/auth';
 import { Year, User, AuthUser, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/types';
@@ -33,6 +33,8 @@ export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [newUser, setNewUser] = useState({ name: '', mobile: '', role: 'user' });
   const [addingUser, setAddingUser] = useState(false);
+  const [editingUser, setEditingUser] = useState<{ id: string; name: string; mobile: string; role: string } | null>(null);
+  const [savingUser, setSavingUser] = useState(false);
 
   const [pwForm, setPwForm] = useState({ newPw: '', confirm: '' });
   const [changingPw, setChangingPw] = useState(false);
@@ -121,6 +123,24 @@ export default function SettingsPage() {
       toast(`User ${status}`, 'success');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed', 'error');
+    }
+  }
+
+  async function handleUpdateUser() {
+    if (!editingUser) return;
+    if (!editingUser.name.trim() || !editingUser.mobile.trim()) {
+      toast('Name and mobile are required', 'error'); return;
+    }
+    setSavingUser(true);
+    try {
+      await updateUser(editingUser.id, { name: editingUser.name.trim(), mobile: editingUser.mobile.trim(), role: editingUser.role });
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...editingUser } : u));
+      toast('User updated!', 'success');
+      setEditingUser(null);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed', 'error');
+    } finally {
+      setSavingUser(false);
     }
   }
 
@@ -365,21 +385,75 @@ export default function SettingsPage() {
             {/* Users list */}
             <div className="space-y-2">
               {users.map(u => (
-                <div key={u.id} className="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-3 py-2.5">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">{u.name}</p>
-                    <p className="text-xs text-gray-500">{u.mobile} &middot; {u.role}</p>
-                  </div>
-                  <button
-                    onClick={() => handleToggleUser(u.id)}
-                    className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
-                      u.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-600'
-                    }`}
-                  >
-                    {u.status}
-                  </button>
+                <div key={u.id} className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+                  {editingUser?.id === u.id ? (
+                    /* Inline edit form */
+                    <div className="px-3 py-3 space-y-2 bg-red-50">
+                      <input
+                        value={editingUser.name}
+                        onChange={e => setEditingUser(p => p && ({ ...p, name: e.target.value }))}
+                        placeholder="Full name"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white"
+                      />
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        value={editingUser.mobile}
+                        onChange={e => setEditingUser(p => p && ({ ...p, mobile: e.target.value }))}
+                        placeholder="Mobile number"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white"
+                      />
+                      <select
+                        value={editingUser.role}
+                        onChange={e => setEditingUser(p => p && ({ ...p, role: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white"
+                      >
+                        <option value="user">Member</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={handleUpdateUser}
+                          disabled={savingUser}
+                          className="flex-1 bg-red-800 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-50"
+                        >
+                          {savingUser ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => setEditingUser(null)}
+                          className="flex-1 bg-gray-100 text-gray-700 rounded-xl py-2.5 text-sm font-semibold"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Normal row */
+                    <div className="flex items-center justify-between px-3 py-2.5">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">{u.name}</p>
+                        <p className="text-xs text-gray-500">{u.mobile} &middot; {u.role}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => setEditingUser({ id: u.id, name: u.name, mobile: u.mobile, role: u.role })}
+                          className="text-xs text-red-700 font-semibold px-2 py-1"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleToggleUser(u.id)}
+                          className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                            u.status === 'active'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-600'
+                          }`}
+                        >
+                          {u.status}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

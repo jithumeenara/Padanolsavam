@@ -8,6 +8,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const updates: string[] = [];
     const values: unknown[] = [];
     if (body.name) { updates.push(`name = $${values.length + 1}`); values.push(body.name); }
+    if (body.mobile) { updates.push(`mobile = $${values.length + 1}`); values.push(body.mobile); }
     if (body.role) { updates.push(`role = $${values.length + 1}`); values.push(body.role); }
     if (!updates.length) return err('Nothing to update');
     values.push(id);
