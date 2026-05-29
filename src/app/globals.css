@@ -88,16 +88,16 @@ body {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 14mm 18mm 20mm 18mm;
+    margin: 10mm 8mm 14mm 8mm;
     @bottom-center {
       content: "Page " counter(page) " of " counter(pages);
-      font-size: 8pt;
+      font-size: 7.5pt;
       color: #555;
       font-family: 'Anek Malayalam', sans-serif;
     }
     @bottom-right {
       content: "DYFI Padanolsavam · Meenara Unit";
-      font-size: 7.5pt;
+      font-size: 7pt;
       color: #999;
       font-family: 'Anek Malayalam', sans-serif;
     }
