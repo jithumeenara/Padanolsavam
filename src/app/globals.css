@@ -209,6 +209,17 @@ body {
     border: 0.5pt solid #ddd !important;
     color: #111 !important;
     vertical-align: top;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+  }
+  /* Override Tailwind truncate on any element inside a table cell */
+  td * {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
   }
   tr { page-break-inside: avoid; }
   tr:nth-child(even) td { background-color: #f9f9f9 !important; }

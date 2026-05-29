@@ -8,7 +8,6 @@ import { formatDate } from '@/lib/utils';
 import { Student, CLASS_OPTIONS } from '@/types';
 import { useToast } from '@/components/ToastContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { AuthUser } from '@/types';
 
 export default function StudentsPage() {
   const { activeYear } = useYear();
@@ -19,17 +18,14 @@ export default function StudentsPage() {
   const [filterClass, setFilterClass] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [session, setSession] = useState<AuthUser | null>(null);
 
-  useEffect(() => { setSession(getSession()); }, []);
+  const isAdmin = getSession()?.role === 'admin';
 
   async function load() {
     if (!activeYear) { setLoading(false); return; }
     setLoading(true);
     try {
-      const s = getSession();
-      const addedBy = s?.role === 'user' ? s.id : undefined;
-      const data = await getStudents(activeYear, addedBy);
+      const data = await getStudents(activeYear);
       setStudents(data);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to load', 'error');
@@ -157,7 +153,7 @@ export default function StudentsPage() {
                   <p className="text-xs text-gray-400">{formatDate(s.created_at)}</p>
                   <div className="flex gap-2">
                     <Link href={`/students/add?id=${s.id}`} className="text-xs text-red-700 font-medium">Edit</Link>
-                    {session?.role === 'admin' && (
+                    {isAdmin && (
                       <button
                         onClick={() => setConfirmId(s.id)}
                         disabled={deleting === s.id}
