@@ -10,9 +10,15 @@ import { useToast } from '@/components/ToastContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 function getClassBadge(cls: string) {
-  if (cls === 'Plus Two') return 'bg-purple-100 text-purple-800';
+  if (cls === 'Plus Two') return 'bg-purple-200 text-purple-900';
   if (cls === 'Plus One') return 'bg-amber-100 text-amber-800';
   return 'bg-red-100 text-red-800';
+}
+
+function getCardBg(cls: string) {
+  if (cls === 'Plus Two') return 'bg-purple-50';
+  if (cls === 'Plus One') return 'bg-amber-50';
+  return 'bg-white';
 }
 
 export default function StudentsPage() {
@@ -274,7 +280,7 @@ export default function StudentsPage() {
           </div>
         ) : (
           filtered.map(s => (
-            <div key={s.id} className="bg-white rounded-2xl p-3 shadow-sm card-hover">
+            <div key={s.id} className={`${getCardBg(s.class)} rounded-2xl p-3 shadow-sm card-hover`}>
               <div className="flex gap-3 items-start">
                 {/* Photo + class badge below */}
                 <button onClick={() => setViewStudent(s)} className="shrink-0 flex flex-col items-center gap-1 active:scale-95 transition-transform">
