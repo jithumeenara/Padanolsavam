@@ -18,18 +18,33 @@ export default function ImageUpload({ value, onChange, label = 'Photo' }: Props)
   const { toast } = useToast();
 
   async function handleFile(file: File) {
-    setShowPicker(false);
+    if (!file) return;
     setUploading(true);
     try {
       const base64 = await compressImage(file, 200);
-      const { url } = await uploadFile(base64, file.name, file.type);
+      const { url } = await uploadFile(base64, file.name, file.type || 'image/jpeg');
       onChange(url);
       toast('Photo uploaded!', 'success');
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Upload failed', 'error');
+      toast(err instanceof Error ? err.message : 'Upload failed — try again', 'error');
     } finally {
       setUploading(false);
     }
+  }
+
+  function resetInput(ref: React.RefObject<HTMLInputElement | null>) {
+    if (ref.current) ref.current.value = '';
+  }
+
+  // Close popup FIRST, then open picker after DOM settles (needed on mobile)
+  function openCamera() {
+    setShowPicker(false);
+    setTimeout(() => { resetInput(cameraRef); cameraRef.current?.click(); }, 80);
+  }
+
+  function openGallery() {
+    setShowPicker(false);
+    setTimeout(() => { resetInput(galleryRef); galleryRef.current?.click(); }, 80);
   }
 
   return (
@@ -42,20 +57,21 @@ export default function ImageUpload({ value, onChange, label = 'Photo' }: Props)
         className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer bg-gray-50 active:bg-gray-100 transition-colors"
       >
         {uploading ? (
-          <div className="py-4">
-            <div className="w-8 h-8 border-2 border-red-800 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <p className="text-xs text-gray-500">Uploading...</p>
+          <div className="py-6">
+            <div className="w-10 h-10 border-3 border-red-800 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderWidth: 3 }} />
+            <p className="text-sm font-medium text-gray-600">Uploading photo...</p>
+            <p className="text-xs text-gray-400 mt-1">Please wait</p>
           </div>
         ) : value ? (
-          <div className="relative">
+          <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={value} alt="Uploaded" className="h-36 w-full object-cover rounded-lg" />
-            <p className="text-xs text-gray-400 mt-2">Tap to change</p>
+            <img src={value} alt="Student photo" className="h-40 w-full object-cover rounded-xl" />
+            <p className="text-xs text-gray-400 mt-2">Tap to change photo</p>
           </div>
         ) : (
-          <div className="py-5">
-            <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg viewBox="0 0 24 24" className="w-7 h-7 fill-red-400">
+          <div className="py-6">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg viewBox="0 0 24 24" className="w-8 h-8 fill-red-400">
                 <path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z" />
               </svg>
             </div>
@@ -67,58 +83,54 @@ export default function ImageUpload({ value, onChange, label = 'Photo' }: Props)
 
       {/* Bottom-sheet picker */}
       {showPicker && (
-        <div
-          className="fixed inset-0 z-50 flex items-end"
-          onClick={() => setShowPicker(false)}
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/40" />
-
-          {/* Sheet */}
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowPicker(false)}>
+          <div className="absolute inset-0 bg-black/50" />
           <div
-            className="relative w-full bg-white rounded-t-3xl px-5 pt-4 pb-10 space-y-3 shadow-xl"
+            className="relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-10 shadow-2xl"
             onClick={e => e.stopPropagation()}
+            style={{ animation: 'slideUp 0.2s ease-out' }}
           >
-            {/* Handle bar */}
-            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
-            <p className="text-center text-sm font-bold text-gray-800 mb-4">Add Photo</p>
+            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5" />
+            <p className="text-center text-base font-bold text-gray-800 mb-5">Select Photo</p>
 
             {/* Take Photo */}
             <button
-              onClick={() => cameraRef.current?.click()}
-              className="w-full flex items-center gap-4 bg-red-50 rounded-2xl px-4 py-4 active:scale-95 transition-transform"
+              type="button"
+              onClick={openCamera}
+              className="w-full flex items-center gap-4 bg-red-50 border border-red-100 rounded-2xl px-4 py-4 mb-3 active:scale-95 transition-transform"
             >
-              <div className="w-11 h-11 bg-red-800 rounded-xl flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 bg-red-800 rounded-xl flex items-center justify-center shrink-0">
                 <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
                   <path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z" />
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-sm font-semibold text-gray-800">Take Photo</p>
-                <p className="text-xs text-gray-500">Open camera to capture</p>
+                <p className="text-sm font-bold text-gray-800">Take Photo</p>
+                <p className="text-xs text-gray-500 mt-0.5">Open camera to capture now</p>
               </div>
             </button>
 
             {/* Choose from Gallery */}
             <button
-              onClick={() => galleryRef.current?.click()}
-              className="w-full flex items-center gap-4 bg-gray-50 rounded-2xl px-4 py-4 active:scale-95 transition-transform"
+              type="button"
+              onClick={openGallery}
+              className="w-full flex items-center gap-4 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 mb-4 active:scale-95 transition-transform"
             >
-              <div className="w-11 h-11 bg-gray-700 rounded-xl flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 bg-gray-700 rounded-xl flex items-center justify-center shrink-0">
                 <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
                   <path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z" />
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-sm font-semibold text-gray-800">Choose from Gallery</p>
-                <p className="text-xs text-gray-500">Pick an existing photo</p>
+                <p className="text-sm font-bold text-gray-800">Choose from Gallery</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pick an existing photo</p>
               </div>
             </button>
 
-            {/* Cancel */}
             <button
+              type="button"
               onClick={() => setShowPicker(false)}
-              className="w-full py-3 text-sm font-semibold text-gray-500 active:opacity-70"
+              className="w-full py-3 text-sm font-semibold text-gray-500 rounded-2xl bg-gray-100 active:opacity-70"
             >
               Cancel
             </button>
@@ -126,23 +138,31 @@ export default function ImageUpload({ value, onChange, label = 'Photo' }: Props)
         </div>
       )}
 
-      {/* Camera input */}
+      {/* Camera — with capture for mobile */}
       <input
         ref={cameraRef}
         type="file"
         accept="image/*"
         capture="environment"
         className="hidden"
-        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
+        onChange={e => {
+          const file = e.target.files?.[0];
+          e.target.value = ''; // reset so same file can be picked again
+          if (file) handleFile(file);
+        }}
       />
 
-      {/* Gallery input */}
+      {/* Gallery — no capture so it opens the photo library */}
       <input
         ref={galleryRef}
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
+        onChange={e => {
+          const file = e.target.files?.[0];
+          e.target.value = ''; // reset so same file can be picked again
+          if (file) handleFile(file);
+        }}
       />
     </div>
   );
