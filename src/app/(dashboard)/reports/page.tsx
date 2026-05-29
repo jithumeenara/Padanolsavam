@@ -88,14 +88,14 @@ export default function ReportsPage() {
   }
 
   function handleExportStudents() {
-    const data = filteredStudents.map(s => ({
+    const data = filteredStudents.map((s, idx) => ({
+      sl_no: idx + 1,
       name: s.student_name,
       class: s.class,
       parent_phone: s.parent_phone,
       house_name: s.house_name,
       address: s.address,
       remarks: s.remarks,
-      year: s.year,
       date_added: formatDate(s.created_at),
     }));
     downloadCSV(data as unknown as Record<string, unknown>[], `students_report_${selectedYear}.csv`);
@@ -313,36 +313,38 @@ export default function ReportsPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-gray-100">
-                  <table className="w-full text-xs min-w-[560px]">
+                  <table className="w-full text-xs min-w-[700px]">
                     <thead>
                       <tr className="bg-red-50 border-b border-red-100">
-                        <th className="text-left px-3 py-2.5 font-semibold text-gray-600">#</th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Name</th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Class</th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Parent Phone</th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-gray-600">House Name</th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Remarks</th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-gray-600">Added</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600 w-8">#</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600">Name</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600 w-14">Class</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600">Phone</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600">House Name</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600">Address</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600">Remarks</th>
+                        <th className="text-left px-2 py-2.5 font-semibold text-gray-600 w-20">Added</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredStudents.map((s, idx) => (
                         <tr key={s.id} className={`border-b border-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                          <td className="px-3 py-2 text-gray-400">{idx + 1}</td>
-                          <td className="px-3 py-2 font-medium text-gray-800 whitespace-nowrap">{s.student_name}</td>
-                          <td className="px-3 py-2">
-                            <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-semibold">{s.class}</span>
+                          <td className="px-2 py-2 text-gray-400">{idx + 1}</td>
+                          <td className="px-2 py-2 font-medium text-gray-800">{s.student_name}</td>
+                          <td className="px-2 py-2">
+                            <span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded-full font-semibold text-[10px]">{s.class}</span>
                           </td>
-                          <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{s.parent_phone}</td>
-                          <td className="px-3 py-2 text-gray-600 max-w-[120px] truncate">{s.house_name}</td>
-                          <td className="px-3 py-2 text-gray-500 max-w-[100px] truncate">{s.remarks}</td>
-                          <td className="px-3 py-2 text-gray-400 whitespace-nowrap">{formatDate(s.created_at)}</td>
+                          <td className="px-2 py-2 text-gray-600">{s.parent_phone}</td>
+                          <td className="px-2 py-2 text-gray-600">{s.house_name}</td>
+                          <td className="px-2 py-2 text-gray-600">{s.address}</td>
+                          <td className="px-2 py-2 text-gray-500">{s.remarks}</td>
+                          <td className="px-2 py-2 text-gray-400 whitespace-nowrap">{formatDate(s.created_at)}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr className="bg-red-50 border-t-2 border-red-100">
-                        <td colSpan={7} className="px-3 py-2.5 font-bold text-gray-700 text-xs">
+                        <td colSpan={8} className="px-2 py-2.5 font-bold text-gray-700 text-xs">
                           Total: {filteredStudents.length} students{classFilter ? ` in Class ${classFilter}` : ''}
                         </td>
                       </tr>
