@@ -11,13 +11,13 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 
 function getClassBadge(cls: string) {
   if (cls === 'Plus Two') return 'bg-purple-200 text-purple-900';
-  if (cls === 'Plus One') return 'bg-amber-100 text-amber-800';
+  if (cls === 'SSLC Pass') return 'bg-amber-100 text-amber-800';
   return 'bg-red-100 text-red-800';
 }
 
 function getCardBg(cls: string) {
   if (cls === 'Plus Two') return 'bg-purple-50';
-  if (cls === 'Plus One') return 'bg-amber-50';
+  if (cls === 'SSLC Pass') return 'bg-amber-50';
   return 'bg-white';
 }
 
