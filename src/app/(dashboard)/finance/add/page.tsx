@@ -25,12 +25,13 @@ function AddFinanceForm() {
   const [loading, setLoading] = useState(false);
   const [loadingEntry, setLoadingEntry] = useState(isEdit);
   const [userId, setUserId] = useState('');
+  const [userName, setUserName] = useState('');
   const [incomeCategories, setIncomeCategories] = useState<string[]>(INCOME_CATEGORIES);
   const [expenseCategories, setExpenseCategories] = useState<string[]>(EXPENSE_CATEGORIES);
 
   useEffect(() => {
     const s = getSession();
-    if (s) setUserId(s.id);
+    if (s) { setUserId(s.id); setUserName(s.name || ''); }
     getSettings().then(({ settings }) => {
       if (Array.isArray(settings?.income_categories) && settings.income_categories.length > 0)
         setIncomeCategories(settings.income_categories);
@@ -74,7 +75,7 @@ function AddFinanceForm() {
         await updateFinance(type, editId, { ...form, amount: Number(form.amount), updated_by: userId });
         toast('Entry updated!', 'success');
       } else {
-        const payload = { ...form, amount: Number(form.amount), year: activeYear, created_by: userId };
+        const payload = { ...form, amount: Number(form.amount), year: activeYear, created_by: userId, added_by_name: userName };
         if (type === 'income') await addIncome(payload);
         else await addExpense(payload);
         toast(`${type === 'income' ? 'Income' : 'Expense'} added!`, 'success');

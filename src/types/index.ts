@@ -60,6 +60,8 @@ export interface Settings {
   app_name: string;
   income_categories?: string[];
   expense_categories?: string[];
+  telegram_chat_id?: string;
+  telegram_enabled?: boolean;
   updated_at: string;
 }
 

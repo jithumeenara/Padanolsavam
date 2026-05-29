@@ -51,7 +51,7 @@ function AddStudentForm() {
         await updateStudent(editId, form);
         toast('Student updated!', 'success');
       } else {
-        await addStudent({ ...form, added_by: session?.id || '', year: activeYear });
+        await addStudent({ ...form, added_by: session?.id || '', added_by_name: session?.name || '', year: activeYear });
         toast('Student added!', 'success');
       }
       router.back();

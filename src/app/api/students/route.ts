@@ -1,5 +1,14 @@
 import { NextRequest } from 'next/server';
 import pool, { ok, err } from '@/lib/db';
+import { sendTelegramMessage, sendTelegramPhoto } from '@/lib/telegram';
+
+async function getTelegramConfig(): Promise<{ chat_id: string; enabled: boolean }> {
+  try {
+    const { rows } = await pool.query('SELECT telegram_chat_id, telegram_enabled FROM settings LIMIT 1');
+    const s = rows[0] || {};
+    return { chat_id: s.telegram_chat_id || '', enabled: !!s.telegram_enabled };
+  } catch { return { chat_id: '', enabled: false }; }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -34,6 +43,30 @@ export async function POST(req: NextRequest) {
       [body.student_name, body.class || '', body.parent_phone || '', body.address || '',
        body.house_name || '', body.remarks || '', body.photo_url || '', body.added_by || '', body.year]
     );
+
+    // Fire-and-forget Telegram notification
+    getTelegramConfig().then(({ chat_id, enabled }) => {
+      if (!enabled || !chat_id) return;
+      const caption = [
+        `🎓 <b>New Student Added</b>`,
+        ``,
+        `👤 <b>Name:</b> ${body.student_name}`,
+        `📚 <b>Class:</b> ${body.class || '—'}`,
+        `📞 <b>Parent Phone:</b> ${body.parent_phone || '—'}`,
+        `🏠 <b>House Name:</b> ${body.house_name || '—'}`,
+        `📍 <b>Address:</b> ${body.address || '—'}`,
+        body.remarks ? `📝 <b>Remarks:</b> ${body.remarks}` : null,
+        `👤 <b>Added By:</b> ${body.added_by_name || body.added_by || '—'}`,
+        `🗓 <b>Year:</b> ${body.year}`,
+      ].filter(Boolean).join('\n');
+
+      if (body.photo_url) {
+        sendTelegramPhoto(chat_id, body.photo_url, caption);
+      } else {
+        sendTelegramMessage(chat_id, caption);
+      }
+    });
+
     return ok({ id: rows[0].id }, 'Student added');
   } catch (e) {
     return err(e instanceof Error ? e.message : 'Failed', 500);

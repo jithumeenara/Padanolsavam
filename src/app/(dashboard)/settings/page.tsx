@@ -45,6 +45,10 @@ export default function SettingsPage() {
   const [newExpenseCat, setNewExpenseCat] = useState('');
   const [savingCats, setSavingCats] = useState(false);
 
+  const [telegramChatId, setTelegramChatId] = useState('');
+  const [telegramEnabled, setTelegramEnabled] = useState(false);
+  const [savingTelegram, setSavingTelegram] = useState(false);
+
   async function loadData(admin: boolean) {
     setLoading(true);
     try {
@@ -55,6 +59,8 @@ export default function SettingsPage() {
         setIncomeCategories(settings.income_categories);
       if (Array.isArray(settings?.expense_categories) && settings.expense_categories.length > 0)
         setExpenseCategories(settings.expense_categories);
+      setTelegramChatId(settings?.telegram_chat_id || '');
+      setTelegramEnabled(settings?.telegram_enabled || false);
       if (admin) {
         const u = await getUsers();
         setUsers(u);
@@ -160,6 +166,18 @@ export default function SettingsPage() {
     if (incomeCategories.includes(v)) { toast('Already exists', 'error'); return; }
     setIncomeCategories(prev => [...prev, v]);
     setNewIncomeCat('');
+  }
+
+  async function handleSaveTelegram() {
+    setSavingTelegram(true);
+    try {
+      await updateSettings({ telegram_chat_id: telegramChatId.trim(), telegram_enabled: telegramEnabled });
+      toast('Telegram settings saved!', 'success');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed', 'error');
+    } finally {
+      setSavingTelegram(false);
+    }
   }
 
   function addExpenseCat() {
@@ -337,6 +355,53 @@ export default function SettingsPage() {
               className="w-full bg-red-800 text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50"
             >
               {savingCats ? 'Saving...' : 'Save Categories'}
+            </button>
+          </div>
+        </Section>
+      )}
+
+      {/* Telegram Notifications — admin only */}
+      {isAdmin && (
+        <Section title="Telegram Notifications">
+          <div className="space-y-4">
+            {/* Enable toggle */}
+            <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Enable Notifications</p>
+                <p className="text-xs text-gray-500 mt-0.5">Send alerts to Telegram when data is added</p>
+              </div>
+              <button
+                onClick={() => setTelegramEnabled(p => !p)}
+                className={`relative w-12 h-6 rounded-full transition-colors ${telegramEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${telegramEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            {/* Chat ID input */}
+            <div>
+              <label className="text-xs font-semibold text-gray-600 block mb-1">Telegram Chat ID</label>
+              <input
+                value={telegramChatId}
+                onChange={e => setTelegramChatId(e.target.value)}
+                placeholder="e.g. -1001234567890"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50"
+              />
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                Add your bot to the group, then send a message, and visit
+                <span className="font-medium text-blue-500"> api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</span> to find the chat ID.
+              </p>
+            </div>
+
+            <button
+              onClick={handleSaveTelegram}
+              disabled={savingTelegram}
+              className="w-full bg-[#229ED9] text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.026 13.35l-2.98-.924c-.647-.204-.659-.647.136-.958l11.637-4.486c.537-.194 1.006.131.834.238h.001z"/>
+              </svg>
+              {savingTelegram ? 'Saving...' : 'Save Telegram Settings'}
             </button>
           </div>
         </Section>
