@@ -9,6 +9,12 @@ import { Student, CLASS_OPTIONS } from '@/types';
 import { useToast } from '@/components/ToastContext';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
+function getClassBadge(cls: string) {
+  if (cls === 'Plus Two') return 'bg-purple-100 text-purple-800';
+  if (cls === 'Plus One') return 'bg-amber-100 text-amber-800';
+  return 'bg-red-100 text-red-800';
+}
+
 export default function StudentsPage() {
   const { activeYear } = useYear();
   const { toast } = useToast();
@@ -156,7 +162,7 @@ export default function StudentsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 text-lg leading-tight">{viewStudent.student_name}</p>
-                  <span className="inline-block bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded-full mt-1">Class {viewStudent.class}</span>
+                  <span className={`inline-block ${getClassBadge(viewStudent.class)} text-xs font-bold px-2.5 py-1 rounded-full mt-1`}>Class {viewStudent.class}</span>
                   <p className="text-xs text-gray-400 mt-1">{formatDate(viewStudent.created_at)}</p>
                 </div>
               </div>
@@ -284,7 +290,7 @@ export default function StudentsPage() {
                       </div>
                     )}
                   </div>
-                  <span className="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                  <span className={`${getClassBadge(s.class)} text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap`}>
                     {s.class}
                   </span>
                 </button>
