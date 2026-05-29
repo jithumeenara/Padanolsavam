@@ -269,34 +269,35 @@ export default function StudentsPage() {
         ) : (
           filtered.map(s => (
             <div key={s.id} className="bg-white rounded-2xl p-3 shadow-sm card-hover">
-              <div className="flex gap-3">
-                {/* Photo — tap to preview */}
-                <button onClick={() => setViewStudent(s)} className="w-14 h-14 rounded-xl overflow-hidden bg-red-50 shrink-0 active:scale-95 transition-transform">
-                  {s.photo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.photo_url} alt={s.student_name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg viewBox="0 0 24 24" className="w-8 h-8 fill-red-300">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                      </svg>
-                    </div>
-                  )}
+              <div className="flex gap-3 items-start">
+                {/* Photo + class badge below */}
+                <button onClick={() => setViewStudent(s)} className="shrink-0 flex flex-col items-center gap-1 active:scale-95 transition-transform">
+                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-red-50">
+                    {s.photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={s.photo_url} alt={s.student_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" className="w-8 h-8 fill-red-300">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <span className="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                    {s.class}
+                  </span>
                 </button>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-semibold text-gray-800 truncate text-sm">{s.student_name}</p>
-                    <span className="bg-red-100 text-red-800 text-xs font-bold px-2 py-0.5 rounded-full shrink-0">Class {s.class}</span>
-                  </div>
+                  <p className="font-semibold text-gray-800 truncate text-sm">{s.student_name}</p>
                   <p className="text-xs text-gray-500 mt-0.5 truncate">{s.house_name}</p>
                   <p className="text-xs text-gray-500 truncate">{s.parent_phone}</p>
                 </div>
 
-                {/* Action icons */}
-                <div className="flex flex-col items-center gap-2 shrink-0">
-                  {/* Eye — view profile */}
+                {/* Eye + Call icons — single horizontal row */}
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => setViewStudent(s)}
                     className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center active:scale-90 transition-transform"
@@ -305,7 +306,6 @@ export default function StudentsPage() {
                       <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                     </svg>
                   </button>
-                  {/* Call icon */}
                   {s.parent_phone && (
                     <button
                       onClick={() => setCallStudent(s)}
