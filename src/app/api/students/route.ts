@@ -44,6 +44,14 @@ export async function POST(req: NextRequest) {
        body.house_name || '', body.remarks || '', body.photo_url || '', body.added_by || '', body.year]
     );
 
+    // Build absolute photo URL so Telegram can fetch it
+    const host = req.headers.get('host') || '';
+    const protocol = host.startsWith('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+    const absolutePhoto = body.photo_url
+      ? (body.photo_url.startsWith('/') ? `${baseUrl}${body.photo_url}` : body.photo_url)
+      : '';
+
     // Fire-and-forget Telegram notification
     getTelegramConfig().then(({ chat_id, enabled }) => {
       if (!enabled || !chat_id) return;
@@ -60,8 +68,8 @@ export async function POST(req: NextRequest) {
         `🗓 <b>Year:</b> ${body.year}`,
       ].filter(Boolean).join('\n');
 
-      if (body.photo_url) {
-        sendTelegramPhoto(chat_id, body.photo_url, caption);
+      if (absolutePhoto) {
+        sendTelegramPhoto(chat_id, absolutePhoto, caption);
       } else {
         sendTelegramMessage(chat_id, caption);
       }

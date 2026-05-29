@@ -24,6 +24,13 @@ export async function POST(req: NextRequest) {
        body.bill_url || '', body.remarks || '', body.year, body.created_by || '']
     );
 
+    const host = req.headers.get('host') || '';
+    const protocol = host.startsWith('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+    const absoluteBill = body.bill_url
+      ? (body.bill_url.startsWith('/') ? `${baseUrl}${body.bill_url}` : body.bill_url)
+      : '';
+
     getTelegramConfig().then(({ chat_id, enabled }) => {
       if (!enabled || !chat_id) return;
       const caption = [
@@ -38,8 +45,8 @@ export async function POST(req: NextRequest) {
         `🗓 <b>Year:</b> ${body.year}`,
       ].filter(Boolean).join('\n');
 
-      if (body.bill_url) {
-        sendTelegramPhoto(chat_id, body.bill_url, caption);
+      if (absoluteBill) {
+        sendTelegramPhoto(chat_id, absoluteBill, caption);
       } else {
         sendTelegramMessage(chat_id, caption);
       }
