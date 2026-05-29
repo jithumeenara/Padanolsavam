@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getStudents, getFinance, getSettings } from '@/lib/api';
 import { useYear } from '@/hooks/useYear';
 import { formatCurrency, formatDate, downloadCSV } from '@/lib/utils';
@@ -23,6 +23,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
 
   const [classFilter, setClassFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'none' | 'class' | 'alpha'>('none');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expenses'>('all');
 
   useEffect(() => {
@@ -52,9 +53,16 @@ export default function ReportsPage() {
   const totalExpense = expenses.reduce((s, r) => s + Number(r.amount || 0), 0);
   const balance = totalIncome - totalExpense;
 
-  const filteredStudents = classFilter
-    ? students.filter(s => s.class === classFilter)
-    : students;
+  const CLASS_ORDER = ['1','2','3','4','5','6','7','8','9','10','SSLC Pass','Plus Two'];
+  const classRank = (cls: string) => { const i = CLASS_ORDER.indexOf(cls); return i === -1 ? 999 : i; };
+
+  const filteredStudents = useMemo(() => {
+    let result = classFilter ? students.filter(s => s.class === classFilter) : students;
+    if (sortBy === 'class') result = [...result].sort((a, b) => classRank(a.class) - classRank(b.class));
+    else if (sortBy === 'alpha') result = [...result].sort((a, b) => a.student_name.localeCompare(b.student_name));
+    return result;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [students, classFilter, sortBy]);
 
   const visibleFinance = (() => {
     if (typeFilter === 'income') return income.map(i => ({ ...i, _type: 'income' as const }));
@@ -258,22 +266,26 @@ export default function ReportsPage() {
         {tab === 'students' && (
           <div>
             <div className="no-print px-4 pt-3 pb-2 space-y-2 bg-white">
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setClassFilter('')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold ${!classFilter ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-600'}`}
+              <div className="flex gap-2">
+                <select
+                  value={classFilter}
+                  onChange={e => setClassFilter(e.target.value)}
+                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 font-medium text-gray-700"
                 >
-                  All Classes
-                </button>
-                {classOptions.map(c => (
-                  <button
-                    key={c}
-                    onClick={() => setClassFilter(c === classFilter ? '' : c)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold ${classFilter === c ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-600'}`}
-                  >
-                    Class {c}
-                  </button>
-                ))}
+                  <option value="">All Classes</option>
+                  {classOptions.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value as 'none' | 'class' | 'alpha')}
+                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50 font-medium text-gray-700"
+                >
+                  <option value="none">Sort: None</option>
+                  <option value="class">Sort: By Class</option>
+                  <option value="alpha">Sort: A → Z</option>
+                </select>
               </div>
               <div className="flex gap-2 items-center justify-between">
                 <p className="text-xs text-gray-500">{filteredStudents.length} students</p>
